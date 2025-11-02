@@ -25,9 +25,9 @@
 
 
 #define ADD_MISSING_CTX
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NPP
 {
@@ -2287,7 +2287,7 @@ namespace ManagedCuda.NPP
         /// </summary>
         /// <param name="dest">Destination image</param>
         /// <param name="nppStreamCtx">NPP stream context.</param>
-        public void AddProduct(NPPImage_32fC1 dest, NppStreamContext nppStreamCtx)
+        public void AddSquare(NPPImage_32fC1 dest, NppStreamContext nppStreamCtx)
         {
             status = NPPNativeMethods_Ctx.NPPi.AddSquare.nppiAddSquare_8u32f_C1IR_Ctx(_devPtrRoi, _pitch, dest.DevicePointerRoi, dest.Pitch, _sizeRoi, nppStreamCtx);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiAddSquare_8u32f_C1IR_Ctx", status));
@@ -2300,7 +2300,7 @@ namespace ManagedCuda.NPP
         /// <param name="dest">Destination image</param>
         /// <param name="mask">Mask image</param>
         /// <param name="nppStreamCtx">NPP stream context.</param>
-        public void AddProduct(NPPImage_32fC1 dest, NPPImage_8uC1 mask, NppStreamContext nppStreamCtx)
+        public void AddSquare(NPPImage_32fC1 dest, NPPImage_8uC1 mask, NppStreamContext nppStreamCtx)
         {
             status = NPPNativeMethods_Ctx.NPPi.AddSquare.nppiAddSquare_8u32f_C1IMR_Ctx(_devPtrRoi, _pitch, mask.DevicePointerRoi, mask.Pitch, dest.DevicePointerRoi, dest.Pitch, _sizeRoi, nppStreamCtx);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiAddSquare_8u32f_C1IMR_Ctx", status));

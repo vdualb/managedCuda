@@ -1219,7 +1219,7 @@ namespace ManagedCuda
             /// <param name="numFunctions">Maximum number of function handles may be returned to the buffer</param>
             /// <param name="mod">Module to query from</param>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuModuleEnumerateFunctions(CUfunction[] functions, uint numFunctions, CUmodule mod);
+            public static extern CUResult cuModuleEnumerateFunctions([Out] CUfunction[] functions, uint numFunctions, CUmodule mod);
 
 
             /// <summary>

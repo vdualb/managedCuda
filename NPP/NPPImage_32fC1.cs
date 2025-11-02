@@ -24,9 +24,9 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NPP
 {
@@ -1222,7 +1222,7 @@ namespace ManagedCuda.NPP
         /// Image squared then added to in place floating point destination image.
         /// </summary>
         /// <param name="dest">Destination image</param>
-        public void AddProduct(NPPImage_32fC1 dest)
+        public void AddSquare(NPPImage_32fC1 dest)
         {
             status = NPPNativeMethods.NPPi.AddSquare.nppiAddSquare_32f_C1IR(_devPtrRoi, _pitch, dest.DevicePointerRoi, dest.Pitch, _sizeRoi);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiAddSquare_32f_C1IR", status));
@@ -1234,7 +1234,7 @@ namespace ManagedCuda.NPP
         /// </summary>
         /// <param name="dest">Destination image</param>
         /// <param name="mask">Mask image</param>
-        public void AddProduct(NPPImage_32fC1 dest, NPPImage_8uC1 mask)
+        public void AddSquare(NPPImage_32fC1 dest, NPPImage_8uC1 mask)
         {
             status = NPPNativeMethods.NPPi.AddSquare.nppiAddSquare_32f_C1IMR(_devPtrRoi, _pitch, mask.DevicePointerRoi, mask.Pitch, dest.DevicePointerRoi, dest.Pitch, _sizeRoi);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiAddSquare_32f_C1IMR", status));

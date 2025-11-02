@@ -24,9 +24,9 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.CudaFFT
 {
@@ -93,6 +93,8 @@ namespace ManagedCuda.CudaFFT
         {
             _handle = handle;
             _nx = nx;
+            _ny = ny;
+            _nz = nz;
             _type = type;
             res = CudaFFTNativeMethods.cufftMakePlan3d(_handle, nx, ny, nz, type, ref size);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cufftMakePlan3d", res));
@@ -113,6 +115,8 @@ namespace ManagedCuda.CudaFFT
             SizeT size = new SizeT();
             _handle = handle;
             _nx = nx;
+            _ny = ny;
+            _nz = nz;
             _type = type;
             res = CudaFFTNativeMethods.cufftMakePlan3d(_handle, nx, ny, nz, type, ref size);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cufftMakePlan3d", res));
