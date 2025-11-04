@@ -24,11 +24,11 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda
 {
@@ -67,7 +67,7 @@ namespace ManagedCuda
             /// <summary>
             /// Creates a new CUDA context, initializes OpenGL interoperability, and associates the CUDA context with the calling
             /// thread. It must be called before performing any other OpenGL interoperability operations. It may fail if the needed
-			/// OpenGL driver facilities are not available. For usage of the Flags parameter, see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/>.
+			/// OpenGL driver facilities are not available. For usage of the Flags parameter, see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/>.
             /// </summary>
             /// <param name="pCtx">Returned CUDA context</param>
             /// <param name="Flags">Options for CUDA context creation</param>

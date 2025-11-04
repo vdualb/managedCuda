@@ -29,6 +29,6 @@ Invoke-MsBuild -Path "ManagedCUDA.sln" -MsBuildParameters ($parametersTemplate -
 
 dotnet build "ManagedCUDA.netCore.sln" -c Release -f netcoreapp3.1 --force --no-incremental -o build\netcoreapp3.1\x64\
 dotnet build "ManagedCUDA.netCore.sln" -c Release -f net6.0 --force --no-incremental -o build\net6.0\x64\
-dotnet build "ManagedCUDA.netCore.sln" -c Release -f net7.0 --force --no-incremental -o build\net7.0\x64\
+dotnet build "ManagedCUDA.netCore.sln" -c Release -f net8.0 --force --no-incremental -o build\net8.0\x64\
 Pop-Location
 Pop-Location

@@ -45,6 +45,7 @@ namespace ManagedCuda.CudaSolve
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -54,6 +55,7 @@ namespace ManagedCuda.CudaSolve
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -108,6 +110,7 @@ namespace ManagedCuda.CudaSolve
             return this.SolverStatus.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -118,6 +121,7 @@ namespace ManagedCuda.CudaSolve
             base.GetObjectData(info, context);
             info.AddValue("SolverStatus", this._solverStatus);
         }
+#endif
         #endregion
 
         #region Static methods

@@ -36,7 +36,6 @@ using System.IO;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -44,7 +43,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static System.Net.WebRequestMethods;
 
 namespace ManagedCuda
 {
@@ -671,7 +669,7 @@ namespace ManagedCuda
 
             /// <summary>
             /// Decrements the usage count of the context <c>ctx</c>, and destroys the context if the usage count goes to 0. The context
-			/// must be a handle that was passed back by <see cref="cuCtxCreate_v2"/> or <see cref="cuCtxAttach"/>, and must be current to the calling thread.
+			/// must be a handle that was passed back by <see cref="cuCtxCreate"/> or <see cref="cuCtxAttach"/>, and must be current to the calling thread.
             /// </summary>
             /// <param name="ctx">Context to destroy</param>
             /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
@@ -701,7 +699,7 @@ namespace ManagedCuda
             /// If successful, <see cref="cuCtxPopCurrent_v2"/> passes back the old context handle in <c>pctx</c>. That context may then be made current
             /// to a different CPU thread by calling <see cref="cuCtxPushCurrent_v2"/>.<para/>
             /// Floating contexts may be destroyed by calling <see cref="cuCtxDestroy_v2"/>.<para/>
-			/// If a context was current to the CPU thread before <see cref="cuCtxCreate_v2"/> or <see cref="cuCtxPushCurrent_v2"/> was called, this function makes
+			/// If a context was current to the CPU thread before <see cref="cuCtxCreate"/> or <see cref="cuCtxPushCurrent_v2"/> was called, this function makes
             /// that context current to the CPU thread again.
             /// </summary>
             /// <param name="pctx">Returned new context handle</param>
@@ -756,13 +754,14 @@ namespace ManagedCuda
             /// return the current context's device.
             /// </summary>
             /// <param name="device">Returned device handle for the specified context</param>
+            /// <param name="ctx"></param>
             [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuCtxGetDevice_v2")]
             public static extern CUResult cuCtxGetDevice(ref CUdevice device, CUcontext ctx);
 
             /// <summary>
             /// Blocks until the current context has completed all preceding requested tasks.
             /// If the current context is the primary context, green contexts that have been created will also be synchronized.
-            /// <see cref="cuCtxSynchronize"/> returns an error if one of the
+            /// <see cref="cuCtxSynchronize()"/> returns an error if one of the
             /// preceding tasks failed. If the context was created with the <see cref="CUCtxFlags.BlockingSync"/> flag, the CPU thread will
             /// block until the GPU context has finished its work.
             /// </summary>

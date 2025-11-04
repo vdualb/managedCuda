@@ -46,6 +46,7 @@ namespace ManagedCuda.CudaBlas
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -55,6 +56,7 @@ namespace ManagedCuda.CudaBlas
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -109,6 +111,7 @@ namespace ManagedCuda.CudaBlas
             return this._cudaBlasError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -119,6 +122,7 @@ namespace ManagedCuda.CudaBlas
             base.GetObjectData(info, context);
             info.AddValue("CudaBlasError", this._cudaBlasError);
         }
+#endif
         #endregion
 
         #region Static methods

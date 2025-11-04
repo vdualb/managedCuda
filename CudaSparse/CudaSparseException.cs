@@ -45,6 +45,7 @@ namespace ManagedCuda.CudaSparse
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -54,6 +55,7 @@ namespace ManagedCuda.CudaSparse
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -108,6 +110,7 @@ namespace ManagedCuda.CudaSparse
             return this.CudaSparseError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -118,6 +121,7 @@ namespace ManagedCuda.CudaSparse
             base.GetObjectData(info, context);
             info.AddValue("CudaSparseError", this._cudaSparseError);
         }
+#endif
         #endregion
 
         #region Static methods

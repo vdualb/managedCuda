@@ -45,6 +45,7 @@ namespace ManagedCuda.NVRTC
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -54,6 +55,7 @@ namespace ManagedCuda.NVRTC
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -108,6 +110,7 @@ namespace ManagedCuda.NVRTC
             return this.NVRTCError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -118,6 +121,7 @@ namespace ManagedCuda.NVRTC
             base.GetObjectData(info, context);
             info.AddValue("NVRTCError", this._NVRTCError);
         }
+#endif
         #endregion
 
         #region Static methods

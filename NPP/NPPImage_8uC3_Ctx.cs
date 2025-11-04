@@ -25,9 +25,9 @@
 
 
 #define ADD_MISSING_CTX
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NPP
 {
@@ -10237,6 +10237,7 @@ namespace ManagedCuda.NPP
         /// If for a comparison operations absdiff of sourcePixels is greater than pThreshold is true, the output pixel is set
         /// to pValue, otherwise it is set to absdiff of sourcePixels.
         /// </summary>
+        /// <param name="src2">2nd source image</param>
         /// <param name="dest">Destination image</param>
         /// <param name="nThreshold">The threshold value.</param>
         /// <param name="nValue">The threshold replacement value.</param>
@@ -10259,7 +10260,7 @@ namespace ManagedCuda.NPP
         /// If for a comparison operations absdiff of sourcePixels is greater than pThreshold is true, the output pixel is set
         /// to pValue, otherwise it is set to absdiff of sourcePixels.
         /// </summary>
-        /// <param name="dest">Destination image</param>
+        /// <param name="src2">2nd source image</param>
         /// <param name="nThreshold">The threshold value.</param>
         /// <param name="nValue">The threshold replacement value.</param>
         /// <param name="nppStreamCtx">NPP stream context.</param>
@@ -10494,7 +10495,7 @@ namespace ManagedCuda.NPP
         /// <param name="src0">Source image channel 0</param>
         /// <param name="src1">Source image channel 1</param>
         /// <param name="src2">Source image channel 2</param>
-        /// <param name="dest0">Destination image</param>     
+        /// <param name="dest">Destination image</param>     
         /// <param name="aTwist">The color twist matrix with floating-point coefficient values. [3,4]</param>
         /// <param name="nppStreamCtx">NPP stream context.</param>
         public static void YUV422ToRGBColorTwist(NPPImage_8uC1 src0, NPPImage_8uC1 src1, NPPImage_8uC1 src2, NPPImage_8uC3 dest, float[,] aTwist, NppStreamContext nppStreamCtx)

@@ -24,11 +24,11 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda
 {
@@ -110,7 +110,7 @@ namespace ManagedCuda
             /// </summary>
             /// <param name="pCtx">Returned newly created CUDA context</param>
             /// <param name="pCudaDevice">Returned pointer to the device on which the context was created</param>
-            /// <param name="Flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/> for details)</param>
+            /// <param name="Flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/> for details)</param>
             /// <param name="pD3DDevice">Direct3D device to create interoperability context with</param>
             /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
             /// <see cref="CUResult.ErrorInvalidValue"/>, <see cref="CUResult.ErrorOutOfMemory"/>, <see cref="CUResult.ErrorUnknown"/>.
@@ -127,7 +127,7 @@ namespace ManagedCuda
             /// is destroyed or encounters an error.
             /// </summary>
             /// <param name="pCtx">Returned newly created CUDA context</param>
-            /// <param name="flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/> for details)</param>
+            /// <param name="flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/> for details)</param>
             /// <param name="pD3DDevice">Direct3D device to create interoperability context with</param>
             /// <param name="cudaDevice">Returned pointer to the device on which the context was created</param>
             /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
@@ -275,7 +275,7 @@ namespace ManagedCuda
             /// </summary>
             /// <param name="pCtx">Returned newly created CUDA context</param>
             /// <param name="pCudaDevice">Returned pointer to the device on which the context was created</param>
-            /// <param name="Flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/> for details)</param>
+            /// <param name="Flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/> for details)</param>
             /// <param name="pD3DDevice">Direct3D device to create interoperability context with</param>
             /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
             /// <see cref="CUResult.ErrorInvalidValue"/>, <see cref="CUResult.ErrorOutOfMemory"/>, <see cref="CUResult.ErrorUnknown"/>.
@@ -293,7 +293,7 @@ namespace ManagedCuda
             /// is destroyed or encounters an error.
             /// </summary>
             /// <param name="pCtx">Returned newly created CUDA context</param>
-            /// <param name="flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/> for details)</param>
+            /// <param name="flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/> for details)</param>
             /// <param name="pD3DDevice">Direct3D device to create interoperability context with</param>
             /// <param name="cudaDevice">Returned pointer to the device on which the context was created</param>
             /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
@@ -428,7 +428,7 @@ namespace ManagedCuda
         /// </summary>
         /// <param name="pCtx">Returned newly created CUDA context</param>
         /// <param name="pCudaDevice">Returned pointer to the device on which the context was created</param>
-        /// <param name="Flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/> for details)</param>
+        /// <param name="Flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/> for details)</param>
         /// <param name="pD3DDevice">Direct3D device to create interoperability context with</param>
         /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
         /// <see cref="CUResult.ErrorInvalidValue"/>, <see cref="CUResult.ErrorOutOfMemory"/>, <see cref="CUResult.ErrorUnknown"/>.
@@ -445,7 +445,7 @@ namespace ManagedCuda
         /// is destroyed or encounters an error.
         /// </summary>
         /// <param name="pCtx">Returned newly created CUDA context</param>
-		/// <param name="flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2"/> for details)</param>
+		/// <param name="flags">Context creation flags (see <see cref="ManagedCuda.DriverAPINativeMethods.ContextManagement.cuCtxCreate"/> for details)</param>
         /// <param name="pD3DDevice">Direct3D device to create interoperability context with</param>
         /// <param name="cudaDevice">Returned pointer to the device on which the context was created</param>
         /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 

@@ -45,6 +45,7 @@ namespace ManagedCuda.NvJitLink
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -54,6 +55,7 @@ namespace ManagedCuda.NvJitLink
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -108,6 +110,7 @@ namespace ManagedCuda.NvJitLink
             return this.nvJitLinkError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -118,6 +121,7 @@ namespace ManagedCuda.NvJitLink
             base.GetObjectData(info, context);
             info.AddValue("NvJitLinkError", this._NvJitLinkError);
         }
+#endif
         #endregion
 
         #region Static methods

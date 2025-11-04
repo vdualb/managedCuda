@@ -46,6 +46,7 @@ namespace ManagedCuda.NvJpeg
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -55,6 +56,7 @@ namespace ManagedCuda.NvJpeg
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -109,6 +111,7 @@ namespace ManagedCuda.NvJpeg
             return this._nvjpegError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -119,6 +122,7 @@ namespace ManagedCuda.NvJpeg
             base.GetObjectData(info, context);
             info.AddValue("NvJpegError", this._nvjpegError);
         }
+#endif
         #endregion
 
         #region Static methods

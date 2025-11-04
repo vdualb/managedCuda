@@ -265,6 +265,14 @@ namespace ManagedCuda
             return cudaStream;
         }
 
+        /// <summary>
+        /// \brief Returns the unique Id associated with the green context supplied
+        /// 
+        /// Returns in \p greenCtxId the unique Id which is associated with a given green context.
+        /// The Id is unique for the life of the program for this instance of CUDA.
+        /// If green context is supplied as NULL and the current context is set to a green context,
+        /// the Id of the current green context is returned.
+        /// </summary>
         public ulong GetId()
         {
             ulong ret = 0;

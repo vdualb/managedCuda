@@ -25,12 +25,9 @@
 
 
 using ManagedCuda.BasicTypes;
-using Microsoft.VisualBasic.FileIO;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -1361,6 +1358,7 @@ namespace ManagedCuda
         /// option take precedence over the PTX directive.
         /// Option type: int\n
         /// Applies to: compiler only
+        /// </summary>
         public CudaJOMaxThreadsPerBlock(uint value)
         {
             _option = CUJITOption.MaxThreadsPerBlock;

@@ -25,9 +25,9 @@
 
 
 #define ADD_MISSING_CTX
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NPP
 {
@@ -1074,6 +1074,8 @@ namespace ManagedCuda.NPP
         /// Two channel 8-bit unsigned planar NV12 convertion to three channel 8-bit unsigned packed RGB, using a Color Twist to compute the exact
         /// color space arithmetic.
         /// </summary>
+        /// <param name="src0"></param>
+        /// <param name="src1"></param>
         /// <param name="dest">Destination image</param>  
         /// <param name="aTwist">The color twist matrix with floating-point coefficient values. [3,4]</param>
         /// <param name="nppStreamCtx">NPP stream context.</param>

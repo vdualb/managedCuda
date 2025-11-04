@@ -4647,19 +4647,33 @@ namespace ManagedCuda.BasicTypes
     /// </summary>
     public enum CUatomicOperation
     {
+        /// <summary/>
         IntegerAdd = 0,
+        /// <summary/>
         IntegerMin = 1,
+        /// <summary/>
         IntegerMax = 2,
+        /// <summary/>
         IntegerIncrement = 3,
+        /// <summary/>
         IntegerDecrement = 4,
+        /// <summary/>
         And = 5,
+        /// <summary/>
         Or = 6,
+        /// <summary/>
         Xor = 7,
+        /// <summary/>
         Exchange = 8,
+        /// <summary/>
         CAS = 9,
+        /// <summary/>
         FloatAdd = 10,
+        /// <summary/>
         FloatMin = 11,
+        /// <summary/>
         FloatMax = 12,
+        /// <summary/>
         MAX
     }
 
@@ -4669,13 +4683,21 @@ namespace ManagedCuda.BasicTypes
     [Flags]
     public enum CUatomicOperationCapability
     {
+        /// <summary/>
         None = 0,
+        /// <summary/>
         Signed = 1 << 0,
+        /// <summary/>
         Unsigned = 1 << 1,
+        /// <summary/>
         Reduction = 1 << 2,
+        /// <summary/>
         Scalar32 = 1 << 3,
+        /// <summary/>
         Scalar64 = 1 << 4,
+        /// <summary/>
         Scalar128 = 1 << 5,
+        /// <summary/>
         Vector32x4 = 1 << 6
     }
 

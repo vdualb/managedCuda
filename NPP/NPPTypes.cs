@@ -4463,6 +4463,7 @@ namespace ManagedCuda.NPP
         /// MUST be called before calling the corresponding warp affine batch function whenever any of the transformation matrices in the list have changed.
         /// </summary>
         /// <param name="pBatchList">Device memory pointer to nBatchSize list of NppiWarpAffineBatchCXR structures.</param>
+        /// <param name="nppStreamCtx"></param>
         public static void WarpAffineBatchInit(CudaDeviceVariable<NppiWarpAffineBatchCXR> pBatchList, NppStreamContext nppStreamCtx)
         {
             NppStatus status = NPPNativeMethods_Ctx.NPPi.GeometricTransforms.nppiWarpAffineBatchInit_Ctx(pBatchList.DevicePointer, pBatchList.Size, nppStreamCtx);
@@ -4506,6 +4507,7 @@ namespace ManagedCuda.NPP
         /// MUST be called before calling the corresponding warp affine batch function whenever any of the transformation matrices in the list have changed.
         /// </summary>
         /// <param name="pBatchList">Device memory pointer to nBatchSize list of NppiWarpPerspectiveBatchCXR structures.</param>
+        /// <param name="nppStreamCtx"></param>
         public static void WarpPerspectiveBatchInit(CudaDeviceVariable<NppiWarpPerspectiveBatchCXR> pBatchList, NppStreamContext nppStreamCtx)
         {
             NppStatus status = NPPNativeMethods_Ctx.NPPi.GeometricTransforms.nppiWarpPerspectiveBatchInit_Ctx(pBatchList.DevicePointer, pBatchList.Size, nppStreamCtx);

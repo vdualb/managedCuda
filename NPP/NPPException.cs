@@ -47,6 +47,7 @@ namespace ManagedCuda.NPP
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -56,6 +57,7 @@ namespace ManagedCuda.NPP
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -110,6 +112,7 @@ namespace ManagedCuda.NPP
             return this._nppError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -120,6 +123,7 @@ namespace ManagedCuda.NPP
             base.GetObjectData(info, context);
             info.AddValue("NppError", this._nppError);
         }
+#endif
         #endregion
 
         #region Static methods
@@ -351,6 +355,7 @@ namespace ManagedCuda.NPP
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -360,6 +365,7 @@ namespace ManagedCuda.NPP
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -414,6 +420,7 @@ namespace ManagedCuda.NPP
             return this._nppError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -424,6 +431,7 @@ namespace ManagedCuda.NPP
             base.GetObjectData(info, context);
             info.AddValue("NppError", this._nppError);
         }
+#endif
         #endregion
 
         #region Properties

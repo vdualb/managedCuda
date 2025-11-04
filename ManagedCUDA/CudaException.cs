@@ -50,6 +50,7 @@ namespace ManagedCuda
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -59,6 +60,7 @@ namespace ManagedCuda
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -117,6 +119,7 @@ namespace ManagedCuda
             return this.CudaError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -127,6 +130,7 @@ namespace ManagedCuda
             base.GetObjectData(info, context);
             info.AddValue("CudaError", this._cudaError);
         }
+#endif
         #endregion
 
         #region Static methods

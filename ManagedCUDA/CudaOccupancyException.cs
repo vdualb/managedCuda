@@ -46,6 +46,7 @@ namespace ManagedCuda
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -55,6 +56,7 @@ namespace ManagedCuda
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -109,6 +111,7 @@ namespace ManagedCuda
             return this.CudaOccError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -119,6 +122,7 @@ namespace ManagedCuda
             base.GetObjectData(info, context);
             info.AddValue("Cuda Occupancy Error", this._cudaOccError);
         }
+#endif
         #endregion
 
         #region Static methods

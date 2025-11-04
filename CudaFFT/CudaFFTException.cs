@@ -45,6 +45,7 @@ namespace ManagedCuda.CudaFFT
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -54,6 +55,7 @@ namespace ManagedCuda.CudaFFT
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -108,6 +110,7 @@ namespace ManagedCuda.CudaFFT
             return this.CudaFFTError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -118,6 +121,7 @@ namespace ManagedCuda.CudaFFT
             base.GetObjectData(info, context);
             info.AddValue("CudaFFTError", this._cudaFFTError);
         }
+#endif
         #endregion
 
         #region Static methods

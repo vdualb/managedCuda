@@ -6157,6 +6157,7 @@ namespace ManagedCuda.NPP
         /// If for a comparison operations absdiff of sourcePixels is greater than pThreshold is true, the output pixel is set
         /// to pValue, otherwise it is set to absdiff of sourcePixels.
         /// </summary>
+        /// <param name="src2">2nd source image</param>
         /// <param name="dest">Destination image</param>
         /// <param name="nThreshold">The threshold value.</param>
         /// <param name="nValue">The threshold replacement value.</param>
@@ -6179,7 +6180,7 @@ namespace ManagedCuda.NPP
         /// If for a comparison operations absdiff of sourcePixels is greater than pThreshold is true, the output pixel is set
         /// to pValue, otherwise it is set to absdiff of sourcePixels.
         /// </summary>
-        /// <param name="dest">Destination image</param>
+        /// <param name="src2">2nd source image</param>
         /// <param name="nThreshold">The threshold value.</param>
         /// <param name="nValue">The threshold replacement value.</param>
         /// <param name="nppStreamCtx">NPP stream context.</param>

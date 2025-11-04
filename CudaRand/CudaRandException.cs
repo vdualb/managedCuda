@@ -45,6 +45,7 @@ namespace ManagedCuda.CudaRand
 
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -54,6 +55,7 @@ namespace ManagedCuda.CudaRand
             : base(serInfo, streamingContext)
         {
         }
+#endif
 
 
         /// <summary>
@@ -108,6 +110,7 @@ namespace ManagedCuda.CudaRand
             return this._cudaRandError.ToString();
         }
 
+#if (!NETCOREAPP)
         /// <summary>
         /// 
         /// </summary>
@@ -118,6 +121,7 @@ namespace ManagedCuda.CudaRand
             base.GetObjectData(info, context);
             info.AddValue("CudaRandError", this._cudaRandError);
         }
+#endif
         #endregion
 
         #region Static methods
