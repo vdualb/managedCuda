@@ -42,6 +42,8 @@ namespace ManagedCuda.CudaSolve
 
 #if (NETCOREAPP)
         internal const string CUSOLVE_API_DLL_NAME_LINUX = "cusolver";
+        internal const string CUSOLVE_SHORT_VERSION_LINUX = "12";
+        internal const string CUSOLVE_LONG_VERSION_LINUX = "12.0.4.66";
 
         static CudaSolveNativeMethods()
         {
@@ -56,7 +58,22 @@ namespace ManagedCuda.CudaSolve
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    bool res = NativeLibrary.TryLoad(CUSOLVE_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    //first try the exact version:
+                    bool res = NativeLibrary.TryLoad("lib" + CUSOLVE_API_DLL_NAME_LINUX + ".so." + CUSOLVE_LONG_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if no exact match found, try major version:
+                    res = NativeLibrary.TryLoad("lib" + CUSOLVE_API_DLL_NAME_LINUX + ".so." + CUSOLVE_SHORT_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if still no match, try with only the lib name:
+                    res = NativeLibrary.TryLoad(CUSOLVE_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
                     if (!res)
                     {
                         Debug.WriteLine("Failed to load '" + CUSOLVE_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"

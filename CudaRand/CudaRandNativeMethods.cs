@@ -24,10 +24,10 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.CudaRand
 {
@@ -40,6 +40,8 @@ namespace ManagedCuda.CudaRand
 
 #if (NETCOREAPP)
         internal const string CURAND_API_DLL_NAME_LINUX = "curand";
+        internal const string CURAND_SHORT_VERSION_LINUX = "10";
+        internal const string CURAND_LONG_VERSION_LINUX = "10.4.0.35";
 
         static CudaRandNativeMethods()
         {
@@ -54,7 +56,22 @@ namespace ManagedCuda.CudaRand
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    bool res = NativeLibrary.TryLoad(CURAND_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    //first try the exact version:
+                    bool res = NativeLibrary.TryLoad("lib" + CURAND_API_DLL_NAME_LINUX + ".so." + CURAND_LONG_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if no exact match found, try major version:
+                    res = NativeLibrary.TryLoad("lib" + CURAND_API_DLL_NAME_LINUX + ".so." + CURAND_SHORT_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if still no match, try with only the lib name:
+                    res = NativeLibrary.TryLoad(CURAND_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
                     if (!res)
                     {
                         Debug.WriteLine("Failed to load '" + CURAND_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"

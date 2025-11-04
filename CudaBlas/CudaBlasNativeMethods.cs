@@ -43,6 +43,8 @@ namespace ManagedCuda.CudaBlas
 
 #if (NETCOREAPP)
         internal const string CUBLAS_API_DLL_NAME_LINUX = "cublas";
+        internal const string CUBLAS_SHORT_VERSION_LINUX = "13";
+        internal const string CUBLAS_LONG_VERSION_LINUX = "13.1.0.3";
 
         static CudaBlasNativeMethods()
         {
@@ -57,7 +59,22 @@ namespace ManagedCuda.CudaBlas
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    bool res = NativeLibrary.TryLoad(CUBLAS_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    //first try the exact version:
+                    bool res = NativeLibrary.TryLoad("lib" + CUBLAS_API_DLL_NAME_LINUX + ".so." + CUBLAS_LONG_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if no exact match found, try major version:
+                    res = NativeLibrary.TryLoad("lib" + CUBLAS_API_DLL_NAME_LINUX + ".so." + CUBLAS_SHORT_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if still no match, try with only the lib name:
+                    res = NativeLibrary.TryLoad(CUBLAS_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
                     if (!res)
                     {
                         Debug.WriteLine("Failed to load '" + CUBLAS_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"

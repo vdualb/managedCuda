@@ -40,6 +40,8 @@ namespace ManagedCuda.CudaFFT
 
 #if (NETCOREAPP)
         internal const string CUFFT_API_DLL_NAME_LINUX = "cufft";
+        internal const string CUFFT_SHORT_VERSION_LINUX = "12";
+        internal const string CUFFT_LONG_VERSION_LINUX = "12.0.0.61";
 
         static CudaFFTNativeMethods()
         {
@@ -54,10 +56,25 @@ namespace ManagedCuda.CudaFFT
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    bool res = NativeLibrary.TryLoad(CUFFT_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    //first try the exact version:
+                    bool res = NativeLibrary.TryLoad("lib" + CUFFT_API_DLL_NAME_LINUX + ".so." + CUFFT_LONG_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if no exact match found, try major version:
+                    res = NativeLibrary.TryLoad("lib" + CUFFT_API_DLL_NAME_LINUX + ".so." + CUFFT_SHORT_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if still no match, try with only the lib name:
+                    res = NativeLibrary.TryLoad(CUFFT_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
                     if (!res)
                     {
-                        Debug.WriteLine("Failed to load '" + CUFFT_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"
+                        Console.WriteLine("Failed to load '" + CUFFT_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"
                             + CUFFT_API_DLL_NAME + "'. Check LD_LIBRARY_PATH environment variable for correct paths.");
                     }
                 }

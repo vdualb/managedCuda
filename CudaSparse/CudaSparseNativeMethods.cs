@@ -42,6 +42,8 @@ namespace ManagedCuda.CudaSparse
 
 #if (NETCOREAPP)
         internal const string CUSPARSE_API_DLL_NAME_LINUX = "cusparse";
+        internal const string CUSPARSE_SHORT_VERSION_LINUX = "12";
+        internal const string CUSPARSE_LONG_VERSION_LINUX = "12.6.3.3";
 
         static CudaSparseNativeMethods()
         {
@@ -56,7 +58,22 @@ namespace ManagedCuda.CudaSparse
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    bool res = NativeLibrary.TryLoad(CUSPARSE_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    //first try the exact version:
+                    bool res = NativeLibrary.TryLoad("lib" + CUSPARSE_API_DLL_NAME_LINUX + ".so." + CUSPARSE_LONG_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if no exact match found, try major version:
+                    res = NativeLibrary.TryLoad("lib" + CUSPARSE_API_DLL_NAME_LINUX + ".so." + CUSPARSE_SHORT_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if still no match, try with only the lib name:
+                    res = NativeLibrary.TryLoad(CUSPARSE_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
                     if (!res)
                     {
                         Debug.WriteLine("Failed to load '" + CUSPARSE_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"

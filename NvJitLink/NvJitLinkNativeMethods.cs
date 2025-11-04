@@ -38,6 +38,8 @@ namespace ManagedCuda.NvJitLink
 
 #if (NETCOREAPP)
         internal const string NVJITLINK_API_DLL_NAME_LINUX = "nvJitLink";
+        internal const string NVJITLINK_SHORT_VERSION_LINUX = "13";
+        internal const string NVJITLINK_LONG_VERSION_LINUX = "13.0.88";
 
         static NvJitLinkNativeMethods()
         {
@@ -52,7 +54,22 @@ namespace ManagedCuda.NvJitLink
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    bool res = NativeLibrary.TryLoad(NVJITLINK_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    //first try the exact version:
+                    bool res = NativeLibrary.TryLoad("lib" + NVJITLINK_API_DLL_NAME_LINUX + ".so." + NVJITLINK_LONG_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if no exact match found, try major version:
+                    res = NativeLibrary.TryLoad("lib" + NVJITLINK_API_DLL_NAME_LINUX + ".so." + NVJITLINK_SHORT_VERSION_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
+                    if (res)
+                    {
+                        return libHandle;
+                    }
+
+                    //if still no match, try with only the lib name:
+                    res = NativeLibrary.TryLoad(NVJITLINK_API_DLL_NAME_LINUX, assembly, DllImportSearchPath.SafeDirectories, out libHandle);
                     if (!res)
                     {
                         Debug.WriteLine("Failed to load '" + NVJITLINK_API_DLL_NAME_LINUX + "' shared library. Falling back to (Windows-) default library name '"
