@@ -3301,18 +3301,6 @@ namespace ManagedCuda.NPP
             get { return x == 0 && y == 0 && width == 0 && height == 0; }
         }
 
-        ///// <summary>
-        ///// Returns the pointer shift for this roi and a given memory pitch
-        ///// </summary>
-        ///// <param name="aPitch"></param>
-        ///// <param name="channels"></param>
-        ///// <param name="typeSize"></param>
-        ///// <returns></returns>
-        //public SizeT GetPointerShift(SizeT aPitch, int channels, int typeSize)
-        //{
-        //    return typeSize * channels * x + aPitch * y;
-        //}
-
         #region Operator Methods
         /// <summary>
         /// per element Add
@@ -4289,89 +4277,6 @@ namespace ManagedCuda.NPP
         #endregion
     }
 
-    /// <summary>
-    /// HaarClassifier
-    /// </summary>
-    [Obsolete("It seems HaarClassifier isn't used at all")]
-    public struct HaarClassifier
-    {
-        /// <summary>
-        /// number of classifiers
-        /// </summary>
-        public int numClassifiers;
-        /// <summary>
-        /// packed classifier data 40 bytes each
-        /// </summary>
-        [MarshalAs(UnmanagedType.LPArray)]
-        public int[] classifiers;
-        /// <summary>
-        /// 
-        /// </summary>
-        public SizeT classifierStep;
-        /// <summary>
-        /// 
-        /// </summary>
-        public NppiSize classifierSize;
-        /// <summary>
-        /// 
-        /// </summary>
-        [MarshalAs(UnmanagedType.LPArray)]
-        public int[] counterDevice;
-    }
-
-    /// <summary>
-    /// HaarBuffer
-    /// </summary>
-    [Obsolete("It seems HaarBuffer isn't used at all")]
-    public struct HaarBuffer
-    {
-        /// <summary>
-        /// size of the buffer
-        /// </summary>
-        public int haarBufferSize;
-        /// <summary>
-        /// buffer
-        /// </summary>
-        [MarshalAs(UnmanagedType.LPArray)]
-        public int[] haarBuffer;
-    }
-
-    /// <summary>
-    /// graph-cut state structure
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct NppiGraphcutState
-    {
-        private IntPtr Value;
-    }
-
-    /// <summary>
-    /// DCT state structure
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct NppiDCTState
-    {
-        private IntPtr Value;
-    }
-
-    /// <summary>
-    /// NppiDecodeHuffmanSpec
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct NppiDecodeHuffmanSpec
-    {
-        private IntPtr Value;
-    }
-
-    /// <summary>
-    /// NppiEncodeHuffmanSpec
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct NppiEncodeHuffmanSpec
-    {
-        private IntPtr Value;
-    }
-
 
     /// <summary>
     /// The NppiHOGConfig structure defines the configuration parameters for the HOG descriptor
@@ -4558,10 +4463,10 @@ namespace ManagedCuda.NPP
         /// MUST be called before calling the corresponding warp affine batch function whenever any of the transformation matrices in the list have changed.
         /// </summary>
         /// <param name="pBatchList">Device memory pointer to nBatchSize list of NppiWarpAffineBatchCXR structures.</param>
-        public static void WarpAffineBatchInit(CudaDeviceVariable<NppiWarpAffineBatchCXR> pBatchList)
+        public static void WarpAffineBatchInit(CudaDeviceVariable<NppiWarpAffineBatchCXR> pBatchList, NppStreamContext nppStreamCtx)
         {
-            NppStatus status = NPPNativeMethods.NPPi.GeometricTransforms.nppiWarpAffineBatchInit(pBatchList.DevicePointer, pBatchList.Size);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpAffineBatchInit", status));
+            NppStatus status = NPPNativeMethods_Ctx.NPPi.GeometricTransforms.nppiWarpAffineBatchInit_Ctx(pBatchList.DevicePointer, pBatchList.Size, nppStreamCtx);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpAffineBatchInit_Ctx", status));
             NPPException.CheckNppStatus(status, null);
         }
     }
@@ -4601,10 +4506,10 @@ namespace ManagedCuda.NPP
         /// MUST be called before calling the corresponding warp affine batch function whenever any of the transformation matrices in the list have changed.
         /// </summary>
         /// <param name="pBatchList">Device memory pointer to nBatchSize list of NppiWarpPerspectiveBatchCXR structures.</param>
-        public static void WarpPerspectiveBatchInit(CudaDeviceVariable<NppiWarpPerspectiveBatchCXR> pBatchList)
+        public static void WarpPerspectiveBatchInit(CudaDeviceVariable<NppiWarpPerspectiveBatchCXR> pBatchList, NppStreamContext nppStreamCtx)
         {
-            NppStatus status = NPPNativeMethods.NPPi.GeometricTransforms.nppiWarpPerspectiveBatchInit(pBatchList.DevicePointer, pBatchList.Size);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpPerspectiveBatchInit", status));
+            NppStatus status = NPPNativeMethods_Ctx.NPPi.GeometricTransforms.nppiWarpPerspectiveBatchInit_Ctx(pBatchList.DevicePointer, pBatchList.Size, nppStreamCtx);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpPerspectiveBatchInit_Ctx", status));
             NPPException.CheckNppStatus(status, null);
         }
     }
@@ -4743,6 +4648,83 @@ namespace ManagedCuda.NPP
         /// 
         /// </summary>
         public int nReserved0;
+
+        /// <summary>
+        /// Creates a new NppStreamContext structure, sets the provided stream and queries all other struct field using the CUDA api.
+        /// </summary>
+        /// <param name="stream"></param>
+        public NppStreamContext(CUstream stream)
+        {
+            hStream = stream;
+
+            CUResult res;
+            CUdevice dev = new CUdevice();
+            res = DriverAPINativeMethods.ContextManagement.cuCtxGetDevice(ref dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+            nCudaDeviceId = dev.Pointer;
+
+            nMultiProcessorCount = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref nMultiProcessorCount, CUDeviceAttribute.MultiProcessorCount, dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+
+            nMaxThreadsPerMultiProcessor = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref nMaxThreadsPerMultiProcessor, CUDeviceAttribute.MaxThreadsPerMultiProcessor, dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+
+            nMaxThreadsPerBlock = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref nMaxThreadsPerBlock, CUDeviceAttribute.MaxThreadsPerBlock, dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+
+            int sharedMemPerBlock = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref sharedMemPerBlock, CUDeviceAttribute.MaxSharedMemoryPerBlock, dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+            nSharedMemPerBlock = sharedMemPerBlock;
+
+            nCudaDevAttrComputeCapabilityMajor = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref nCudaDevAttrComputeCapabilityMajor, CUDeviceAttribute.ComputeCapabilityMajor, dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+
+            nCudaDevAttrComputeCapabilityMinor = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref nCudaDevAttrComputeCapabilityMinor, CUDeviceAttribute.ComputeCapabilityMinor, dev);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+
+            CUStreamFlags flags = CUStreamFlags.None;
+            res = DriverAPINativeMethods.Streams.cuStreamGetFlags(stream, ref flags);
+            if (res != CUResult.Success)
+            {
+                throw new CudaException(res);
+            }
+            nStreamFlags = (uint)flags;
+
+            nReserved0 = 0;
+        }
+
+        /// <summary>
+        /// Creates a new NppStreamContext structure, sets the provided stream and queries all other struct field using the CUDA api.
+        /// </summary>
+        /// <param name="stream"></param>
+        public NppStreamContext(CudaStream stream) : this(stream.Stream) { }
     }
 
     /// <summary>

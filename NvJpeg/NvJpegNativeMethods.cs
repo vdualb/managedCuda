@@ -24,10 +24,10 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NvJpeg
 {
@@ -36,7 +36,7 @@ namespace ManagedCuda.NvJpeg
     /// </summary>
     public class NvJpegNativeMethods
     {
-        internal const string NVJPEG_API_DLL_NAME = "nvjpeg64_12";
+        internal const string NVJPEG_API_DLL_NAME = "nvjpeg64_13";
 
 #if (NETCOREAPP)
         internal const string NVJPEG_API_DLL_NAME_LINUX = "nvjpeg";
@@ -265,6 +265,15 @@ namespace ManagedCuda.NvJpeg
         [DllImport(NVJPEG_API_DLL_NAME)]
         public static extern nvjpegStatus nvjpegGetHardwareDecoderInfo(nvjpegHandle handle, ref uint num_engines, ref uint num_cores_per_engine);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="num_engines"></param>
+        /// <returns></returns>
+        [DllImport(NVJPEG_API_DLL_NAME)]
+        public static extern nvjpegStatus nvjpegGetHardwareEncoderInfo(nvjpegHandle handle, ref uint num_engines);
+
 
         /// <summary>
         /// Initalization of decoding state
@@ -437,10 +446,12 @@ namespace ManagedCuda.NvJpeg
         /// <summary>
 		/// </summary>
 		[DllImport(NVJPEG_API_DLL_NAME)]
-        public static extern nvjpegStatus nvjpegEncoderStateCreate(
-                nvjpegHandle handle,
-                ref nvjpegEncoderState encoder_state,
-                CUstream stream);
+        public static extern nvjpegStatus nvjpegEncoderStateCreate(nvjpegHandle handle, ref nvjpegEncoderState encoder_state, CUstream stream);
+
+        /// <summary>
+		/// </summary>
+		[DllImport(NVJPEG_API_DLL_NAME)]
+        public static extern nvjpegStatus nvjpegEncoderStateCreateWithBackend(nvjpegHandle handle, ref nvjpegEncoderState encoder_state, nvjpegEncBackend backend, CUstream stream);
 
         /// <summary>
 		/// </summary>
@@ -495,6 +506,14 @@ namespace ManagedCuda.NvJpeg
                 CUstream stream);
 
         /// <summary>
+        /// </summary>
+        [DllImport(NVJPEG_API_DLL_NAME)]
+        public static extern nvjpegStatus nvjpegEncoderParamsSetRestartInterval(
+                nvjpegEncoderParams encoder_params,
+                uint restart_interval,
+                CUstream stream);
+
+        /// <summary>
 		/// </summary>
 		[DllImport(NVJPEG_API_DLL_NAME)]
         public static extern nvjpegStatus nvjpegEncodeGetBufferSize(
@@ -525,6 +544,21 @@ namespace ManagedCuda.NvJpeg
                 nvjpegEncoderState encoder_state,
                 nvjpegEncoderParams encoder_params,
                 ref nvjpegImage source,
+                nvjpegInputFormat input_format,
+                int image_width,
+                int image_height,
+                CUstream stream);
+
+
+        /// <summary>
+        /// </summary>
+        [DllImport(NVJPEG_API_DLL_NAME)]
+        public static extern nvjpegStatus nvjpegEncode(
+                nvjpegHandle handle,
+                nvjpegEncoderState encoder_state,
+                nvjpegEncoderParams encoder_params,
+                ref nvjpegImage source,
+                nvjpegChromaSubsampling input_subsampling,
                 nvjpegInputFormat input_format,
                 int image_width,
                 int image_height,
@@ -973,17 +1007,6 @@ namespace ManagedCuda.NvJpeg
         /// </summary>
         [DllImport(NVJPEG_API_DLL_NAME)]
         public static extern nvjpegStatus nvjpegEncoderParamsCopyQuantizationTables(
-            nvjpegEncoderParams encode_params,
-            nvjpegJpegStream jpeg_stream,
-            CUstream stream);
-
-
-        /// <summary>
-        /// copies huffman tables from parsed stream. should require same scans structure
-        /// </summary>
-        [DllImport(NVJPEG_API_DLL_NAME)]
-        public static extern nvjpegStatus nvjpegEncoderParamsCopyHuffmanTables(
-            nvjpegEncoderState encoder_state,
             nvjpegEncoderParams encode_params,
             nvjpegJpegStream jpeg_stream,
             CUstream stream);

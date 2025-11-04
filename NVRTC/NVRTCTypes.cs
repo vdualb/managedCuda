@@ -67,7 +67,9 @@ namespace ManagedCuda.NVRTC
         /// <summary/>
         PCHCreate = 15,
         /// <summary/>
-        Cancelled = 16
+        Cancelled = 16,
+        /// <summary/>
+        TimeTraceFileWriteFailed = 17
     }
 
     /// <summary>

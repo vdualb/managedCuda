@@ -36,6 +36,7 @@ namespace ManagedCuda.CudaSolve
     /// CudaSolvSparse: The cuSolverSP library was mainly designed to a solve sparse linear system AxB and the least-squares problem
     /// x = argmin||A*z-b||
     /// </summary>
+    [Obsolete("Deprecated in Cuda version 13")]
     public class CudaSolveSparse : IDisposable
     {
         private bool disposed;

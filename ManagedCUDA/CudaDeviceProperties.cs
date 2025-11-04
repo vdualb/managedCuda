@@ -165,9 +165,16 @@ namespace ManagedCuda
         private bool _d3D12CIGSupported;
         private CUmemDecompressAlgorithm _memDecompressAlgorithmMask;
         private int _memDecompressMaximumLength;
+        private bool _vulkanCIGSupported;
         private int _gpuPciDeviceID;
         private int _gpuPciSubsystemID;
+        private bool _hostNUMAVirtualMemoryManagementSupported;
+        private bool _hostNUMAMemoryPoolsSupported;
         private bool _hostNUMAMultinodeIPCSupported;
+        private bool _hostMemoryPoolsSupported;
+        private bool _hostVirtualMemoryManagementSupported;
+        private bool _hostAllocDMABufSupported;
+        private bool _onlyPartialHostNativeAtomicSupported;
 
 
 
@@ -1318,6 +1325,14 @@ namespace ManagedCuda
             internal set { this._memDecompressMaximumLength = value; }
         }
         /// <summary>
+        /// Device supports CIG with Vulkan.
+        /// </summary>
+        public bool VulkanCIGSupported
+        {
+            get { return this._vulkanCIGSupported; }
+            internal set { this._vulkanCIGSupported = value; }
+        }
+        /// <summary>
         /// The combined 16-bit PCI device ID and 16-bit PCI vendor ID.
         /// </summary>
         public int GpuPciDeviceID
@@ -1334,12 +1349,60 @@ namespace ManagedCuda
             internal set { this._gpuPciSubsystemID = value; }
         }
         /// <summary>
+        /// Device supports HOST_NUMA location with the virtual memory management APIs like ::cuMemCreate, ::cuMemMap and related APIs
+        /// </summary>
+        public bool HostNUMAVirtualMemoryManagementSupported
+        {
+            get { return this._hostNUMAVirtualMemoryManagementSupported; }
+            internal set { this._hostNUMAVirtualMemoryManagementSupported = value; }
+        }
+        /// <summary>
+        /// Device supports HOST_NUMA location with the ::cuMemAllocAsync and ::cuMemPool family of APIs
+        /// </summary>
+        public bool HostNUMAMemoryPoolsSupported
+        {
+            get { return this._hostNUMAMemoryPoolsSupported; }
+            internal set { this._hostNUMAMemoryPoolsSupported = value; }
+        }
+        /// <summary>
         /// Device supports HOST_NUMA location IPC between nodes in a multi-node system.
         /// </summary>
         public bool HostNUMAMultinodeIPCSupported
         {
             get { return this._hostNUMAMultinodeIPCSupported; }
             internal set { this._hostNUMAMultinodeIPCSupported = value; }
+        }
+        /// <summary>
+        /// Device suports HOST location with the ::cuMemAllocAsync and ::cuMemPool family of APIs
+        /// </summary>
+        public bool HostMemoryPoolsSupported
+        {
+            get { return this._hostMemoryPoolsSupported; }
+            internal set { this._hostMemoryPoolsSupported = value; }
+        }
+        /// <summary>
+        /// Device supports HOST location with the virtual memory management APIs like ::cuMemCreate, ::cuMemMap and related APIs
+        /// </summary>
+        public bool HostVirtualMemoryManagementSupported
+        {
+            get { return this._hostVirtualMemoryManagementSupported; }
+            internal set { this._hostVirtualMemoryManagementSupported = value; }
+        }
+        /// <summary>
+        /// Device supports page-locked host memory buffer sharing with dma_buf mechanism.
+        /// </summary>
+        public bool HostAllocDMABufSupported
+        {
+            get { return this._hostAllocDMABufSupported; }
+            internal set { this._hostAllocDMABufSupported = value; }
+        }
+        /// <summary>
+        /// Link between the device and the host supports only some native atomic operations
+        /// </summary>
+        public bool OnlyPartialHostNativeAtomicSupported
+        {
+            get { return this._onlyPartialHostNativeAtomicSupported; }
+            internal set { this._onlyPartialHostNativeAtomicSupported = value; }
         }
     }
 }

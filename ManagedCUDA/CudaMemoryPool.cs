@@ -24,8 +24,8 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-using System;
 using ManagedCuda.BasicTypes;
+using System;
 using System.Diagnostics;
 
 namespace ManagedCuda
@@ -97,6 +97,12 @@ namespace ManagedCuda
                 if (res != CUResult.Success) throw new CudaException(res);
                 _isOwner = true;
             }
+        }
+
+        private CudaMemoryPool(CUmemoryPool memoryPool)
+        {
+            _memoryPool = memoryPool;
+            _isOwner = false;
         }
 
         /// <summary>
@@ -371,6 +377,7 @@ namespace ManagedCuda
             if (res != CUResult.Success)
                 throw new CudaException(res);
         }
+
         /// <summary>
         /// Sets attributes of a memory pool<para/>
         /// Supported attributes are:<para/>
@@ -400,6 +407,74 @@ namespace ManagedCuda
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuMemPoolGetAttribute", res));
             if (res != CUResult.Success)
                 throw new CudaException(res);
+        }
+
+        /// <summary>
+        /// Sets the current memory pool for a memory location and allocation type
+        /// The memory location can be of one of ::CU_MEM_LOCATION_TYPE_DEVICE, ::CU_MEM_LOCATION_TYPE_HOST or
+        /// ::CU_MEM_LOCATION_TYPE_HOST_NUMA.The allocation type can be one of::CU_MEM_ALLOCATION_TYPE_PINNED or 
+        /// ::CU_MEM_ALLOCATION_TYPE_MANAGED.When the allocation type is ::CU_MEM_ALLOCATION_TYPE_MANAGED,
+        /// the location type can also be::CU_MEM_LOCATION_TYPE_NONE to indicate no preferred location 
+        /// for the managed memory pool. In all other cases, the call returns::CUDA_ERROR_INVALID_VALUE.
+        /// When a memory pool is set as the current memory pool, the location parameter should be the same as the location of the pool.
+        /// The location and allocation type specified must match those of the pool otherwise ::CUDA_ERROR_INVALID_VALUE is returned.
+        /// By default, a memory location's current memory pool is its default memory pool that can be obtained via ::cuMemGetDefaultMemPool.
+        /// If the location type is ::CU_MEM_LOCATION_TYPE_DEVICE and the allocation type is ::CU_MEM_ALLOCATION_TYPE_PINNED, then
+        /// this API is the equivalent of calling ::cuDeviceSetMemPool with the location id as the device. 
+        /// For further details on the implications, please refer to the documentation for ::cuDeviceSetMemPool.
+        /// \note Use ::cuMemAllocFromPoolAsync to specify asynchronous allocations from a device different
+        /// than the one the stream runs on.
+        /// </summary>
+        public void Set(CUmemLocation location, CUmemAllocationType type)
+        {
+            CUResult res = DriverAPINativeMethods.MemoryManagement.cuMemSetMemPool(ref location, type, _memoryPool);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuMemSetMemPool", res));
+            if (res != CUResult.Success)
+                throw new CudaException(res);
+        }
+        #endregion
+
+        #region Static Methods
+        /// <summary>
+        /// Returns the default memory pool for a given location and allocation type
+        /// The memory location can be of one of ::CU_MEM_LOCATION_TYPE_DEVICE, ::CU_MEM_LOCATION_TYPE_HOST or
+        /// ::CU_MEM_LOCATION_TYPE_HOST_NUMA.The allocation type can be one of::CU_MEM_ALLOCATION_TYPE_PINNED or 
+        /// ::CU_MEM_ALLOCATION_TYPE_MANAGED.When the allocation type is ::CU_MEM_ALLOCATION_TYPE_MANAGED,
+        /// the location type can also be::CU_MEM_LOCATION_TYPE_NONE to indicate no preferred location 
+        /// for the managed memory pool. In all other cases, the call returns::CUDA_ERROR_INVALID_VALUE.
+        /// </summary>
+        public static CudaMemoryPool GetDefault(CUmemLocation location, CUmemAllocationType type)
+        {
+            CUmemoryPool mempool = new CUmemoryPool();
+            CUResult res = DriverAPINativeMethods.MemoryManagement.cuMemGetDefaultMemPool(ref mempool, ref location, type);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuMemGetDefaultMemPool", res));
+            if (res != CUResult.Success)
+                throw new CudaException(res);
+
+            return new CudaMemoryPool(mempool);
+        }
+
+        /// <summary>
+        /// Gets the current memory pool for a memory location and of a particular allocation type
+        /// The memory location can be of one of ::CU_MEM_LOCATION_TYPE_DEVICE, ::CU_MEM_LOCATION_TYPE_HOST or
+        /// ::CU_MEM_LOCATION_TYPE_HOST_NUMA. The allocation type can be one of ::CU_MEM_ALLOCATION_TYPE_PINNED or 
+        /// ::CU_MEM_ALLOCATION_TYPE_MANAGED. When the allocation type is ::CU_MEM_ALLOCATION_TYPE_MANAGED, 
+        /// the location type can also be ::CU_MEM_LOCATION_TYPE_NONE to indicate no preferred location 
+        /// for the managed memory pool. In all other cases, the call returns ::CUDA_ERROR_INVALID_VALUE
+        /// Returns the last pool provided to ::cuMemSetMemPool or ::cuDeviceSetMemPool for this location and allocation type
+        /// or the location's default memory pool if ::cuMemSetMemPool or ::cuDeviceSetMemPool for that allocType and location
+        /// has never been called. By default the current mempool of a location is the default mempool for a device.
+        /// Otherwise the returned pool must have been set with ::cuDeviceSetMemPool.
+        /// </summary>
+        public static CudaMemoryPool Get(CUmemLocation location, CUmemAllocationType type)
+        {
+            CUmemoryPool mempool = new CUmemoryPool();
+            CUResult res = DriverAPINativeMethods.MemoryManagement.cuMemGetMemPool(ref mempool, ref location, type);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuMemGetMemPool", res));
+            if (res != CUResult.Success)
+                throw new CudaException(res);
+
+            return new CudaMemoryPool(mempool);
         }
         #endregion
 

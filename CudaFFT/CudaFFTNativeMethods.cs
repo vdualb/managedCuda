@@ -24,10 +24,10 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.CudaFFT
 {
@@ -36,7 +36,7 @@ namespace ManagedCuda.CudaFFT
     /// </summary>
     public static class CudaFFTNativeMethods
     {
-        internal const string CUFFT_API_DLL_NAME = "cufft64_11";
+        internal const string CUFFT_API_DLL_NAME = "cufft64_12";
 
 #if (NETCOREAPP)
         internal const string CUFFT_API_DLL_NAME_LINUX = "cufft";

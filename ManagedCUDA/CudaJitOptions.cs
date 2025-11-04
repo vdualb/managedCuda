@@ -24,11 +24,15 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-using System;
-using System.Collections.Generic;
 using ManagedCuda.BasicTypes;
-using System.Runtime.InteropServices;
+using Microsoft.VisualBasic.FileIO;
+using System;
+using System.Buffers.Text;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace ManagedCuda
 {
@@ -44,7 +48,7 @@ namespace ManagedCuda
     {
         /// <summary/>
         protected bool disposed;
-        private const int MAX_ELEM = 32;
+        private const int MAX_ELEM = 35;
         private CUJITOption[] _options = new CUJITOption[MAX_ELEM];
         private IntPtr[] _values = new IntPtr[MAX_ELEM];
         private List<CudaJitOption> _cudaOptions = new List<CudaJitOption>();
@@ -1297,6 +1301,126 @@ namespace ManagedCuda
         {
             _option = CUJITOption.PositionIndependentCode;
             _ptrValue = (IntPtr)(value ? 1 : 0);
+        }
+    }
+
+
+    /// <summary>
+    /// This option hints to the JIT compiler the minimum number of CTAs from the
+    /// kernel’s grid to be mapped to a SM.This option is ignored when used together
+    /// with::CU_JIT_MAX_REGISTERS or ::CU_JIT_THREADS_PER_BLOCK.
+    /// Optimizations based on this option need ::CU_JIT_MAX_THREADS_PER_BLOCK to
+    /// be specified as well.For kernels already using PTX directive.minnctapersm,
+    /// this option will be ignored by default. Use::CU_JIT_OVERRIDE_DIRECTIVE_VALUES
+    /// to let this option take precedence over the PTX directive.
+    /// Option type: unsigned int\n
+    /// Applies to: compiler only
+    /// </summary>
+    public class CudaJOMinCTAPerSM : CudaJitOption
+    {
+        /// <summary>
+        /// This option hints to the JIT compiler the minimum number of CTAs from the
+        /// kernel’s grid to be mapped to a SM.This option is ignored when used together
+        /// with::CU_JIT_MAX_REGISTERS or ::CU_JIT_THREADS_PER_BLOCK.
+        /// Optimizations based on this option need ::CU_JIT_MAX_THREADS_PER_BLOCK to
+        /// be specified as well.For kernels already using PTX directive.minnctapersm,
+        /// this option will be ignored by default. Use::CU_JIT_OVERRIDE_DIRECTIVE_VALUES
+        /// to let this option take precedence over the PTX directive.
+        /// Option type: unsigned int\n
+        /// Applies to: compiler only
+        /// </summary>
+        /// <param name="value"></param>
+        public CudaJOMinCTAPerSM(uint value)
+        {
+            _option = CUJITOption.MinCTAPerSM;
+            _ptrValue = (IntPtr)value;
+        }
+    }
+
+
+    /// <summary>
+    /// Maximum number threads in a thread block, computed as the product of
+    /// the maximum extent specifed for each dimension of the block.This limit
+    /// is guaranteed not to be exeeded in any invocation of the kernel.Exceeding
+    /// the the maximum number of threads results in runtime error or kernel launch
+    /// failure.For kernels already using PTX directive.maxntid, this option will
+    /// be ignored by default. Use::CU_JIT_OVERRIDE_DIRECTIVE_VALUES to let this
+    /// option take precedence over the PTX directive.
+    /// Option type: int\n
+    /// Applies to: compiler only
+    /// </summary>
+    public class CudaJOMaxThreadsPerBlock : CudaJitOption
+    {
+        /// <summary>
+        /// Maximum number threads in a thread block, computed as the product of
+        /// the maximum extent specifed for each dimension of the block.This limit
+        /// is guaranteed not to be exeeded in any invocation of the kernel.Exceeding
+        /// the the maximum number of threads results in runtime error or kernel launch
+        /// failure.For kernels already using PTX directive.maxntid, this option will
+        /// be ignored by default. Use::CU_JIT_OVERRIDE_DIRECTIVE_VALUES to let this
+        /// option take precedence over the PTX directive.
+        /// Option type: int\n
+        /// Applies to: compiler only
+        public CudaJOMaxThreadsPerBlock(uint value)
+        {
+            _option = CUJITOption.MaxThreadsPerBlock;
+            _ptrValue = (IntPtr)(Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+
+
+    /// <summary>
+    /// This option lets the values specified using ::CU_JIT_MAX_REGISTERS,
+    /// ::CU_JIT_THREADS_PER_BLOCK, ::CU_JIT_MAX_THREADS_PER_BLOCK and
+    /// ::CU_JIT_MIN_CTA_PER_SM take precedence over any PTX directives.
+    /// (0: Disable, default; 1: Enable)
+    /// Option type: int\n
+    /// Applies to: compiler only
+    /// </summary>
+    public class CudaJOOverrideDirectiveValues : CudaJitOption
+    {
+        /// <summary>
+        /// This option lets the values specified using ::CU_JIT_MAX_REGISTERS,
+        /// ::CU_JIT_THREADS_PER_BLOCK, ::CU_JIT_MAX_THREADS_PER_BLOCK and
+        /// ::CU_JIT_MIN_CTA_PER_SM take precedence over any PTX directives.
+        /// (0: Disable, default; 1: Enable)
+        /// Option type: int\n
+        /// Applies to: compiler only
+        /// </summary>
+        /// <param name="value"></param>
+        public CudaJOOverrideDirectiveValues(bool value)
+        {
+            _option = CUJITOption.OverrideDirectiveValues;
+            _ptrValue = (IntPtr)(value ? 1 : 0);
+        }
+    }
+
+
+    /// <summary>
+    /// This option specifies the maximum number of concurrent threads to use
+    /// when running compiler optimizations.If the specified value is 1, the
+    /// option will be ignored.If the specified value is 0, the number of
+    /// threads will match the number of CPUs on the underlying machine.
+    /// Otherwise, if the option is N, then up to N threads will be used.
+    /// Option type: unsigned int\n
+    /// Applies to: compiler only
+    /// </summary>
+    public class CudaJOSplitCompile : CudaJitOption
+    {
+        /// <summary>
+        /// This option specifies the maximum number of concurrent threads to use
+        /// when running compiler optimizations.If the specified value is 1, the
+        /// option will be ignored.If the specified value is 0, the number of
+        /// threads will match the number of CPUs on the underlying machine.
+        /// Otherwise, if the option is N, then up to N threads will be used.
+        /// Option type: unsigned int\n
+        /// Applies to: compiler only
+        /// </summary>
+        /// <param name="value"></param>
+        public CudaJOSplitCompile(uint value)
+        {
+            _option = CUJITOption.SplitCompile;
+            _ptrValue = (IntPtr)value;
         }
     }
 }

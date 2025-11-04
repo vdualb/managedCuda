@@ -36,6 +36,7 @@ namespace ManagedCuda.CudaSolve
     /// fast re-factorization when given new coefficients in the same sparsity pattern
     /// A_i x_i = f_i
     /// </summary>
+    [Obsolete("Deprecated in Cuda version 13")]
     public class CudaSolveRefactorization : IDisposable
     {
         private bool disposed;

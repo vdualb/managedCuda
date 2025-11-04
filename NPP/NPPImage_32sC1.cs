@@ -24,9 +24,9 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NPP
 {
@@ -398,22 +398,6 @@ namespace ManagedCuda.NPP
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiAddC_32s_C1IRSfs", status));
             NPPException.CheckNppStatus(status, this);
         }
-        #endregion
-
-        #region Geometric Transforms
-
-        /// <summary>
-        /// Mirror image.
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="flip">Specifies the axis about which the image is to be mirrored.</param>
-        public void Mirror(NPPImage_32sC1 dest, NppiAxis flip)
-        {
-            status = NPPNativeMethods.NPPi.GeometricTransforms.nppiMirror_32s_C1R(_devPtrRoi, _pitch, dest.DevicePointerRoi, dest.Pitch, dest.SizeRoi, flip);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiMirror_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
         #endregion
 
         #region Logical
@@ -819,138 +803,6 @@ namespace ManagedCuda.NPP
             NPPException.CheckNppStatus(status, this);
             return bound;
         }
-
-        /// <summary>
-        /// Affine transform of an image. <para/>This
-        /// function operates using given transform coefficients that can be obtained
-        /// by using nppiGetAffineTransform function or set explicitly. The function
-        /// operates on source and destination regions of interest. The affine warp
-        /// function transforms the source image pixel coordinates (x,y) according
-        /// to the following formulas:<para/>
-        /// X_new = C_00 * x + C_01 * y + C_02<para/>
-        /// Y_new = C_10 * x + C_11 * y + C_12<para/>
-        /// The transformed part of the source image is resampled using the specified
-        /// interpolation method and written to the destination ROI.
-        /// The functions nppiGetAffineQuad and nppiGetAffineBound can help with 
-        /// destination ROI specification.<para/>
-        /// <para/>
-        /// NPPI specific recommendation: <para/>
-        /// The function operates using 2 types of kernels: fast and accurate. The fast
-        /// method is about 4 times faster than its accurate variant,
-        /// but does not perform memory access checks and requires the destination ROI
-        /// to be 64 bytes aligned. Hence any destination ROI is 
-        /// chunked into 3 vertical stripes: the first and the third are processed by
-        /// accurate kernels and the central one is processed by the
-        /// fast one.<para/>
-        /// In order to get the maximum available speed of execution, the projection of
-        /// destination ROI onto image addresses must be 64 bytes
-        /// aligned. This is always true if the values <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x))</code> and <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x + dstRoi.width))</code> <para/>
-        /// are multiples of 64. Another rule of thumb is to specify destination ROI in
-        /// such way that left and right sides of the projected 
-        /// image are separated from the ROI by at least 63 bytes from each side.
-        /// However, this requires the whole ROI to be part of allocated memory. In case
-        /// when the conditions above are not satisfied, the function may decrease in
-        /// speed slightly and will return NPP_MISALIGNED_DST_ROI_WARNING warning.
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="coeffs">Affine transform coefficients [2,3]</param>
-        /// <param name="eInterpolation">Interpolation mode: can be <see cref="InterpolationMode.NearestNeighbor"/>, <see cref="InterpolationMode.Linear"/> or <see cref="InterpolationMode.Cubic"/></param>
-        public void WarpAffine(NPPImage_32sC1 dest, double[,] coeffs, InterpolationMode eInterpolation)
-        {
-            NppiRect rectIn = new NppiRect(_pointRoi, _sizeRoi);
-            NppiRect rectOut = new NppiRect(dest.PointRoi, dest.SizeRoi);
-            status = NPPNativeMethods.NPPi.AffinTransforms.nppiWarpAffine_32s_C1R(_devPtr, _sizeOriginal, _pitch, rectIn, dest.DevicePointer, dest.Pitch, rectOut, coeffs, eInterpolation);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpAffine_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-        /// <summary>
-        /// Inverse affine transform of an image.<para/>
-        /// This function operates using given transform coefficients that can be
-        /// obtained by using nppiGetAffineTransform function or set explicitly. Thus
-        /// there is no need to invert coefficients in your application before calling
-        /// WarpAffineBack. The function operates on source and destination regions of
-        /// interest.<para/>
-        /// The affine warp function transforms the source image pixel coordinates
-        /// (x,y) according to the following formulas:<para/>
-        /// X_new = C_00 * x + C_01 * y + C_02<para/>
-        /// Y_new = C_10 * x + C_11 * y + C_12<para/>
-        /// The transformed part of the source image is resampled using the specified
-        /// interpolation method and written to the destination ROI.
-        /// The functions nppiGetAffineQuad and nppiGetAffineBound can help with
-        /// destination ROI specification.<para/><para/>
-        /// NPPI specific recommendation: <para/>
-        /// The function operates using 2 types of kernels: fast and accurate. The fast
-        /// method is about 4 times faster than its accurate variant,
-        /// but doesn't perform memory access checks and requires the destination ROI
-        /// to be 64 bytes aligned. Hence any destination ROI is 
-        /// chunked into 3 vertical stripes: the first and the third are processed by
-        /// accurate kernels and the central one is processed by the fast one.
-        /// In order to get the maximum available speed of execution, the projection of
-        /// destination ROI onto image addresses must be 64 bytes aligned. This is
-        /// always true if the values <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x))</code> and <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x + dstRoi.width))</code> <para/>
-        /// are multiples of 64. Another rule of thumb is to specify destination ROI in
-        /// such way that left and right sides of the projected image are separated from
-        /// the ROI by at least 63 bytes from each side. However, this requires the
-        /// whole ROI to be part of allocated memory. In case when the conditions above
-        /// are not satisfied, the function may decrease in speed slightly and will
-        /// return NPP_MISALIGNED_DST_ROI_WARNING warning.
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="coeffs">Affine transform coefficients [2,3]</param>
-        /// <param name="eInterpolation">Interpolation mode: can be <see cref="InterpolationMode.NearestNeighbor"/>, <see cref="InterpolationMode.Linear"/> or <see cref="InterpolationMode.Cubic"/></param>
-        public void WarpAffineBack(NPPImage_32sC1 dest, double[,] coeffs, InterpolationMode eInterpolation)
-        {
-            NppiRect rectIn = new NppiRect(_pointRoi, _sizeRoi);
-            NppiRect rectOut = new NppiRect(dest.PointRoi, dest.SizeRoi);
-            status = NPPNativeMethods.NPPi.AffinTransforms.nppiWarpAffineBack_32s_C1R(_devPtr, _sizeOriginal, _pitch, rectIn, dest.DevicePointer, dest.Pitch, rectOut, coeffs, eInterpolation);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpAffineBack_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-        /// <summary>
-        /// Affine transform of an image. <para/>This
-        /// function performs affine warping of a the specified quadrangle in the
-        /// source image to the specified quadrangle in the destination image. The
-        /// function nppiWarpAffineQuad uses the same formulas for pixel mapping as in
-        /// nppiWarpAffine function. The transform coefficients are computed internally.
-        /// The transformed part of the source image is resampled using the specified
-        /// eInterpolation method and written to the destination ROI.<para/>
-        /// NPPI specific recommendation: <para/>
-        /// The function operates using 2 types of kernels: fast and accurate. The fast
-        /// method is about 4 times faster than its accurate variant,
-        /// but doesn't perform memory access checks and requires the destination ROI
-        /// to be 64 bytes aligned. Hence any destination ROI is 
-        /// chunked into 3 vertical stripes: the first and the third are processed by
-        /// accurate kernels and the central one is processed by the fast one.
-        /// In order to get the maximum available speed of execution, the projection of
-        /// destination ROI onto image addresses must be 64 bytes aligned. This is
-        /// always true if the values <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x))</code> and <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x + dstRoi.width))</code> <para/>
-        /// are multiples of 64. Another rule of thumb is to specify destination ROI in
-        /// such way that left and right sides of the projected image are separated from
-        /// the ROI by at least 63 bytes from each side. However, this requires the
-        /// whole ROI to be part of allocated memory. In case when the conditions above
-        /// are not satisfied, the function may decrease in speed slightly and will
-        /// return NPP_MISALIGNED_DST_ROI_WARNING warning.
-        /// </summary>
-        /// <param name="srcQuad">Source quadrangle [4,2]</param>
-        /// <param name="dest">Destination image</param>
-        /// <param name="dstQuad">Destination quadrangle [4,2]</param>
-        /// <param name="eInterpolation">Interpolation mode: can be <see cref="InterpolationMode.NearestNeighbor"/>, <see cref="InterpolationMode.Linear"/> or <see cref="InterpolationMode.Cubic"/></param>
-        public void WarpAffineQuad(double[,] srcQuad, NPPImage_32sC1 dest, double[,] dstQuad, InterpolationMode eInterpolation)
-        {
-            NppiRect rectIn = new NppiRect(_pointRoi, _sizeRoi);
-            NppiRect rectOut = new NppiRect(dest.PointRoi, dest.SizeRoi);
-            status = NPPNativeMethods.NPPi.AffinTransforms.nppiWarpAffineQuad_32s_C1R(_devPtr, _sizeOriginal, _pitch, rectIn, srcQuad, dest.DevicePointer, dest.Pitch, rectOut, dstQuad, eInterpolation);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpAffineQuad_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
         #endregion
 
         #region Perspective Transformations
@@ -997,136 +849,6 @@ namespace ManagedCuda.NPP
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiGetPerspectiveBound", status));
             NPPException.CheckNppStatus(status, this);
             return bound;
-        }
-
-        /// <summary>
-        /// Perspective transform of an image.<para/>
-        /// This function operates using given transform coefficients that 
-        /// can be obtained by using nppiGetPerspectiveTransform function or set
-        /// explicitly. The function operates on source and destination regions 
-        /// of interest. The perspective warp function transforms the source image
-        /// pixel coordinates (x,y) according to the following formulas:<para/>
-        /// X_new = (C_00 * x + C_01 * y + C_02) / (C_20 * x + C_21 * y + C_22)<para/>
-        /// Y_new = (C_10 * x + C_11 * y + C_12) / (C_20 * x + C_21 * y + C_22)<para/>
-        /// The transformed part of the source image is resampled using the specified
-        /// interpolation method and written to the destination ROI.
-        /// The functions nppiGetPerspectiveQuad and nppiGetPerspectiveBound can help
-        /// with destination ROI specification.<para/>
-        /// NPPI specific recommendation: <para/>
-        /// The function operates using 2 types of kernels: fast and accurate. The fast
-        /// method is about 4 times faster than its accurate variant,
-        /// but doesn't perform memory access checks and requires the destination ROI
-        /// to be 64 bytes aligned. Hence any destination ROI is 
-        /// chunked into 3 vertical stripes: the first and the third are processed by
-        /// accurate kernels and the central one is processed by the fast one.
-        /// In order to get the maximum available speed of execution, the projection of
-        /// destination ROI onto image addresses must be 64 bytes aligned. This is
-        /// always true if the values <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x))</code> and <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x + dstRoi.width))</code> <para/>
-        /// are multiples of 64. Another rule of thumb is to specify destination ROI in
-        /// such way that left and right sides of the projected image are separated from
-        /// the ROI by at least 63 bytes from each side. However, this requires the
-        /// whole ROI to be part of allocated memory. In case when the conditions above
-        /// are not satisfied, the function may decrease in speed slightly and will
-        /// return NPP_MISALIGNED_DST_ROI_WARNING warning.
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="coeffs">Perspective transform coefficients [3,3]</param>
-        /// <param name="eInterpolation">Interpolation mode: can be <see cref="InterpolationMode.NearestNeighbor"/>, <see cref="InterpolationMode.Linear"/> or <see cref="InterpolationMode.Cubic"/></param>
-        public void WarpPerspective(NPPImage_32sC1 dest, double[,] coeffs, InterpolationMode eInterpolation)
-        {
-            NppiRect rectIn = new NppiRect(_pointRoi, _sizeRoi);
-            NppiRect rectOut = new NppiRect(dest.PointRoi, dest.SizeRoi);
-            status = NPPNativeMethods.NPPi.PerspectiveTransforms.nppiWarpPerspective_32s_C1R(_devPtr, _sizeOriginal, _pitch, rectIn, dest.DevicePointer, dest.Pitch, rectOut, coeffs, eInterpolation);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpPerspective_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-        /// <summary>
-        /// Inverse perspective transform of an image. <para/>
-        /// This function operates using given transform coefficients that 
-        /// can be obtained by using nppiGetPerspectiveTransform function or set
-        /// explicitly. Thus there is no need to invert coefficients in your application 
-        /// before calling WarpPerspectiveBack. The function operates on source and
-        /// destination regions of interest. The perspective warp function transforms the source image
-        /// pixel coordinates (x,y) according to the following formulas:<para/>
-        /// X_new = (C_00 * x + C_01 * y + C_02) / (C_20 * x + C_21 * y + C_22)<para/>
-        /// Y_new = (C_10 * x + C_11 * y + C_12) / (C_20 * x + C_21 * y + C_22)<para/>
-        /// The transformed part of the source image is resampled using the specified
-        /// interpolation method and written to the destination ROI.
-        /// The functions nppiGetPerspectiveQuad and nppiGetPerspectiveBound can help
-        /// with destination ROI specification.<para/>
-        /// NPPI specific recommendation: <para/>
-        /// The function operates using 2 types of kernels: fast and accurate. The fast
-        /// method is about 4 times faster than its accurate variant,
-        /// but doesn't perform memory access checks and requires the destination ROI
-        /// to be 64 bytes aligned. Hence any destination ROI is 
-        /// chunked into 3 vertical stripes: the first and the third are processed by
-        /// accurate kernels and the central one is processed by the fast one.
-        /// In order to get the maximum available speed of execution, the projection of
-        /// destination ROI onto image addresses must be 64 bytes aligned. This is
-        /// always true if the values <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x))</code> and <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x + dstRoi.width))</code> <para/>
-        /// are multiples of 64. Another rule of thumb is to specify destination ROI in
-        /// such way that left and right sides of the projected image are separated from
-        /// the ROI by at least 63 bytes from each side. However, this requires the
-        /// whole ROI to be part of allocated memory. In case when the conditions above
-        /// are not satisfied, the function may decrease in speed slightly and will
-        /// return NPP_MISALIGNED_DST_ROI_WARNING warning.
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="coeffs">Perspective transform coefficients [3,3]</param>
-        /// <param name="eInterpolation">Interpolation mode: can be <see cref="InterpolationMode.NearestNeighbor"/>, <see cref="InterpolationMode.Linear"/> or <see cref="InterpolationMode.Cubic"/></param>
-        public void WarpPerspectiveBack(NPPImage_32sC1 dest, double[,] coeffs, InterpolationMode eInterpolation)
-        {
-            NppiRect rectIn = new NppiRect(_pointRoi, _sizeRoi);
-            NppiRect rectOut = new NppiRect(dest.PointRoi, dest.SizeRoi);
-            status = NPPNativeMethods.NPPi.PerspectiveTransforms.nppiWarpPerspectiveBack_32s_C1R(_devPtr, _sizeOriginal, _pitch, rectIn, dest.DevicePointer, dest.Pitch, rectOut, coeffs, eInterpolation);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpPerspectiveBack_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-        /// <summary>
-        /// Perspective transform of an image.<para/>
-        /// This function performs perspective warping of a the specified
-        /// quadrangle in the source image to the specified quadrangle in the
-        /// destination image. The function nppiWarpPerspectiveQuad uses the same
-        /// formulas for pixel mapping as in nppiWarpPerspective function. The
-        /// transform coefficients are computed internally.
-        /// The transformed part of the source image is resampled using the specified
-        /// interpolation method and written to the destination ROI.<para/>
-        /// NPPI specific recommendation: <para/>
-        /// The function operates using 2 types of kernels: fast and accurate. The fast
-        /// method is about 4 times faster than its accurate variant,
-        /// but doesn't perform memory access checks and requires the destination ROI
-        /// to be 64 bytes aligned. Hence any destination ROI is 
-        /// chunked into 3 vertical stripes: the first and the third are processed by
-        /// accurate kernels and the central one is processed by the fast one.
-        /// In order to get the maximum available speed of execution, the projection of
-        /// destination ROI onto image addresses must be 64 bytes aligned. This is
-        /// always true if the values <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x))</code> and <para/>
-        /// <code>(int)((void *)(pDst + dstRoi.x + dstRoi.width))</code> <para/>
-        /// are multiples of 64. Another rule of thumb is to specify destination ROI in
-        /// such way that left and right sides of the projected image are separated from
-        /// the ROI by at least 63 bytes from each side. However, this requires the
-        /// whole ROI to be part of allocated memory. In case when the conditions above
-        /// are not satisfied, the function may decrease in speed slightly and will
-        /// return NPP_MISALIGNED_DST_ROI_WARNING warning.
-        /// </summary>
-        /// <param name="srcQuad">Source quadrangle [4,2]</param>
-        /// <param name="dest">Destination image</param>
-        /// <param name="destQuad">Destination quadrangle [4,2]</param>
-        /// <param name="eInterpolation">Interpolation mode: can be <see cref="InterpolationMode.NearestNeighbor"/>, <see cref="InterpolationMode.Linear"/> or <see cref="InterpolationMode.Cubic"/></param>
-        public void WarpPerspectiveQuad(double[,] srcQuad, NPPImage_32sC1 dest, double[,] destQuad, InterpolationMode eInterpolation)
-        {
-            NppiRect rectIn = new NppiRect(_pointRoi, _sizeRoi);
-            NppiRect rectOut = new NppiRect(dest.PointRoi, dest.SizeRoi);
-            status = NPPNativeMethods.NPPi.PerspectiveTransforms.nppiWarpPerspectiveQuad_32s_C1R(_devPtr, _sizeOriginal, _pitch, rectIn, srcQuad, dest.DevicePointer, dest.Pitch, rectOut, destQuad, eInterpolation);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiWarpPerspectiveQuad_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
         }
         #endregion
 
@@ -1257,21 +979,6 @@ namespace ManagedCuda.NPP
         }
         #endregion
 
-        #region MirrorNew
-
-
-        /// <summary>
-        /// Mirror image inplace.
-        /// </summary>
-        /// <param name="flip">Specifies the axis about which the image is to be mirrored.</param>
-        public void Mirror(NppiAxis flip)
-        {
-            status = NPPNativeMethods.NPPi.GeometricTransforms.nppiMirror_32s_C1IR(_devPtrRoi, _pitch, _sizeRoi, flip);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiMirror_32s_C1IR", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-        #endregion
-
         #region CopyNew
 
         /// <summary>
@@ -1329,24 +1036,6 @@ namespace ManagedCuda.NPP
         {
             status = NPPNativeMethods.NPPi.Transpose.nppiTranspose_32s_C1R(_devPtrRoi, _pitch, dest.DevicePointerRoi, dest.Pitch, _sizeRoi);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiTranspose_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-        #endregion
-
-        #region Filter
-
-        /// <summary>
-        /// convolution filter.
-        /// </summary>
-        /// <param name="dst">Destination-Image</param>
-        /// <param name="pKernel">Pointer to the start address of the kernel coefficient array.<para/>
-        /// Coefficients are expected to be stored in reverse order.</param>
-        /// <param name="oKernelSize">Width and Height of the rectangular kernel.</param>
-        /// <param name="oAnchor">X and Y offsets of the kernel origin frame of reference</param>
-        public void Filter(NPPImage_32sC1 dst, CudaDeviceVariable<float> pKernel, NppiSize oKernelSize, NppiPoint oAnchor)
-        {
-            status = NPPNativeMethods.NPPi.Convolution.nppiFilter32f_32s_C1R(_devPtrRoi, _pitch, dst.DevicePointerRoi, dst.Pitch, _sizeRoi, pKernel.DevicePointer, oKernelSize, oAnchor);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiFilter32f_32s_C1R", status));
             NPPException.CheckNppStatus(status, this);
         }
         #endregion
@@ -1562,36 +1251,6 @@ namespace ManagedCuda.NPP
             NPPException.CheckNppStatus(status, this);
             return bufferSize;
         }
-        #endregion
-
-        #region FilterBorder
-        /// <summary>
-        /// One channel 32-bit signed convolution filter with border control.<para/>
-        /// General purpose 2D convolution filter using floating-point weights with border control.<para/>
-        /// Pixels under the mask are multiplied by the respective weights in the mask
-        /// and the results are summed. Before writing the result pixel the sum is scaled
-        /// back via division by nDivisor. If any portion of the mask overlaps the source
-        /// image boundary the requested border type operation is applied to all mask pixels
-        /// which fall outside of the source image. <para/>
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="pKernel">Pointer to the start address of the kernel coefficient array. Coeffcients are expected to be stored in reverse order</param>
-        /// <param name="nKernelSize">Width and Height of the rectangular kernel.</param>
-        /// <param name="oAnchor">X and Y offsets of the kernel origin frame of reference relative to the source pixel.</param>
-        /// <param name="eBorderType">The border type operation to be applied at source image border boundaries.</param>
-        /// <param name="filterArea">The area where the filter is allowed to read pixels. The point is relative to the ROI set to source image, the size is the total size starting from the filterArea point. Default value is the set ROI.</param>
-        public void FilterBorder(NPPImage_32sC1 dest, CudaDeviceVariable<float> pKernel, NppiSize nKernelSize, NppiPoint oAnchor, NppiBorderType eBorderType, NppiRect filterArea = new NppiRect())
-        {
-            if (filterArea.Size == new NppiSize())
-            {
-                filterArea.Size = _sizeRoi;
-            }
-            status = NPPNativeMethods.NPPi.FilterBorder32f.nppiFilterBorder32f_32s_C1R(_devPtrRoi, _pitch, filterArea.Size, filterArea.Location, dest.DevicePointerRoi, dest.Pitch, dest.SizeRoi, pKernel.DevicePointer, nKernelSize, oAnchor, eBorderType);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiFilterBorder32f_32s_C1R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-
         #endregion
 
 

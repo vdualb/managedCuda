@@ -38,7 +38,7 @@ namespace ManagedCuda.CudaBlas
     public static class CudaBlasNativeMethods
     {
         //32bit is no more supported, only 64 bit...
-        internal const string CUBLAS_API_DLL_NAME = "cublas64_12";
+        internal const string CUBLAS_API_DLL_NAME = "cublas64_13";
 
 
 #if (NETCOREAPP)
@@ -134,6 +134,67 @@ namespace ManagedCuda.CudaBlas
         public static extern CublasStatus cublasSetSmCountTarget(CudaBlasHandle handle, int smCountTarget);
 
         #endregion
+
+        //New in Cuda13
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasGetEmulationStrategy(CudaBlasHandle handle, ref cublasEmulationStrategy emulationStrategy);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasSetEmulationStrategy(CudaBlasHandle handle, cublasEmulationStrategy emulationStrategy);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasGetEmulationSpecialValuesSupport(CudaBlasHandle handle, ref cudaEmulationSpecialValuesSupport mask);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasSetEmulationSpecialValuesSupport(CudaBlasHandle handle, cudaEmulationSpecialValuesSupport mask);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasGetFixedPointEmulationMantissaControl(CudaBlasHandle handle, ref cudaEmulationMantissaControl mantissaControl);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasSetFixedPointEmulationMantissaControl(CudaBlasHandle handle, cudaEmulationMantissaControl mantissaControl);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasGetFixedPointEmulationMaxMantissaBitCount(CudaBlasHandle handle, ref int maxMantissaBitCount);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasSetFixedPointEmulationMaxMantissaBitCount(CudaBlasHandle handle, int maxMantissaBitCount);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasGetFixedPointEmulationMantissaBitOffset(CudaBlasHandle handle, ref int mantissaBitOffset);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasSetFixedPointEmulationMantissaBitOffset(CudaBlasHandle handle, int mantissaBitOffset);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasGetFixedPointEmulationMantissaBitCountPointer(CudaBlasHandle handle, ref IntPtr mantissaBitCount);
+
+        /// <summary>
+        /// </summary>
+        [DllImport(CUBLAS_API_DLL_NAME)]
+        public static extern CublasStatus cublasSetFixedPointEmulationMantissaBitCountPointer(CudaBlasHandle handle, IntPtr mantissaBitCount);
 
         //New in Cuda 9.2
         /// <summary>

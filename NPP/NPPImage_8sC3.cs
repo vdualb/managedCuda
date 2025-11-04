@@ -24,9 +24,9 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NPP
 {
@@ -1314,40 +1314,6 @@ namespace ManagedCuda.NPP
 
         #endregion
 
-        #region Filter
-
-        /// <summary>
-        /// convolution filter.
-        /// </summary>
-        /// <param name="dst">Destination-Image</param>
-        /// <param name="pKernel">Pointer to the start address of the kernel coefficient array.<para/>
-        /// Coefficients are expected to be stored in reverse order.</param>
-        /// <param name="oKernelSize">Width and Height of the rectangular kernel.</param>
-        /// <param name="oAnchor">X and Y offsets of the kernel origin frame of reference</param>
-        public void Filter(NPPImage_8sC3 dst, CudaDeviceVariable<float> pKernel, NppiSize oKernelSize, NppiPoint oAnchor)
-        {
-            status = NPPNativeMethods.NPPi.Convolution.nppiFilter32f_8s_C3R(_devPtrRoi, _pitch, dst.DevicePointerRoi, dst.Pitch, _sizeRoi, pKernel.DevicePointer, oKernelSize, oAnchor);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiFilter32f_8s_C3R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-        /// <summary>
-        /// convolution filter.
-        /// </summary>
-        /// <param name="dst">Destination-Image</param>
-        /// <param name="pKernel">Pointer to the start address of the kernel coefficient array.<para/>
-        /// Coefficients are expected to be stored in reverse order.</param>
-        /// <param name="oKernelSize">Width and Height of the rectangular kernel.</param>
-        /// <param name="oAnchor">X and Y offsets of the kernel origin frame of reference</param>
-        public void Filter(NPPImage_16sC3 dst, CudaDeviceVariable<float> pKernel, NppiSize oKernelSize, NppiPoint oAnchor)
-        {
-            status = NPPNativeMethods.NPPi.Convolution.nppiFilter32f_8s16s_C3R(_devPtrRoi, _pitch, dst.DevicePointerRoi, dst.Pitch, _sizeRoi, pKernel.DevicePointer, oKernelSize, oAnchor);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiFilter32f_8s16s_C3R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-
-        #endregion
-
         #region MaxError
         /// <summary>
         /// image maximum error. User buffer is internally allocated and freed.
@@ -1525,59 +1491,6 @@ namespace ManagedCuda.NPP
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiAverageRelativeErrorGetBufferHostSize_8s_C3R", status));
             NPPException.CheckNppStatus(status, this);
             return bufferSize;
-        }
-        #endregion
-
-        #region FilterBorder
-        /// <summary>
-        /// Three channel 8-bit signed convolution filter with border control.<para/>
-        /// General purpose 2D convolution filter using floating-point weights with border control.<para/>
-        /// Pixels under the mask are multiplied by the respective weights in the mask
-        /// and the results are summed. Before writing the result pixel the sum is scaled
-        /// back via division by nDivisor. If any portion of the mask overlaps the source
-        /// image boundary the requested border type operation is applied to all mask pixels
-        /// which fall outside of the source image. <para/>
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="pKernel">Pointer to the start address of the kernel coefficient array. Coeffcients are expected to be stored in reverse order</param>
-        /// <param name="nKernelSize">Width and Height of the rectangular kernel.</param>
-        /// <param name="oAnchor">X and Y offsets of the kernel origin frame of reference relative to the source pixel.</param>
-        /// <param name="eBorderType">The border type operation to be applied at source image border boundaries.</param>
-        /// <param name="filterArea">The area where the filter is allowed to read pixels. The point is relative to the ROI set to source image, the size is the total size starting from the filterArea point. Default value is the set ROI.</param>
-        public void FilterBorder(NPPImage_8uC3 dest, CudaDeviceVariable<float> pKernel, NppiSize nKernelSize, NppiPoint oAnchor, NppiBorderType eBorderType, NppiRect filterArea = new NppiRect())
-        {
-            if (filterArea.Size == new NppiSize())
-            {
-                filterArea.Size = _sizeRoi;
-            }
-            status = NPPNativeMethods.NPPi.FilterBorder32f.nppiFilterBorder32f_8s_C3R(_devPtrRoi, _pitch, filterArea.Size, filterArea.Location, dest.DevicePointerRoi, dest.Pitch, dest.SizeRoi, pKernel.DevicePointer, nKernelSize, oAnchor, eBorderType);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiFilterBorder32f_8s_C3R", status));
-            NPPException.CheckNppStatus(status, this);
-        }
-        /// <summary>
-        /// Three channel 8-bit signed to 16-bit signed convolution filter with border control.<para/>
-        /// General purpose 2D convolution filter using floating-point weights with border control.<para/>
-        /// Pixels under the mask are multiplied by the respective weights in the mask
-        /// and the results are summed. Before writing the result pixel the sum is scaled
-        /// back via division by nDivisor. If any portion of the mask overlaps the source
-        /// image boundary the requested border type operation is applied to all mask pixels
-        /// which fall outside of the source image. <para/>
-        /// </summary>
-        /// <param name="dest">Destination image</param>
-        /// <param name="pKernel">Pointer to the start address of the kernel coefficient array. Coeffcients are expected to be stored in reverse order</param>
-        /// <param name="nKernelSize">Width and Height of the rectangular kernel.</param>
-        /// <param name="oAnchor">X and Y offsets of the kernel origin frame of reference relative to the source pixel.</param>
-        /// <param name="eBorderType">The border type operation to be applied at source image border boundaries.</param>
-        /// <param name="filterArea">The area where the filter is allowed to read pixels. The point is relative to the ROI set to source image, the size is the total size starting from the filterArea point. Default value is the set ROI.</param>
-        public void FilterBorder(NPPImage_16sC3 dest, CudaDeviceVariable<float> pKernel, NppiSize nKernelSize, NppiPoint oAnchor, NppiBorderType eBorderType, NppiRect filterArea = new NppiRect())
-        {
-            if (filterArea.Size == new NppiSize())
-            {
-                filterArea.Size = _sizeRoi;
-            }
-            status = NPPNativeMethods.NPPi.FilterBorder32f.nppiFilterBorder32f_8s16s_C3R(_devPtrRoi, _pitch, filterArea.Size, filterArea.Location, dest.DevicePointerRoi, dest.Pitch, dest.SizeRoi, pKernel.DevicePointer, nKernelSize, oAnchor, eBorderType);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nppiFilterBorder32f_8s16s_C3R", status));
-            NPPException.CheckNppStatus(status, this);
         }
         #endregion
 

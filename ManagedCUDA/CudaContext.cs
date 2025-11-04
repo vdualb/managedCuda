@@ -197,7 +197,7 @@ namespace ManagedCuda
                 else
                 {
                     CUdevice deviceCheck = new CUdevice();
-                    res = DriverAPINativeMethods.ContextManagement.cuCtxGetDevice(ref deviceCheck);
+                    res = DriverAPINativeMethods.ContextManagement.cuCtxGetDevice(ref deviceCheck, new CUcontext());
                     Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxGetDevice", res));
                     if (res != CUResult.Success)
                         throw new CudaException(res);
@@ -215,7 +215,11 @@ namespace ManagedCuda
 
             if (createNew)
             {
-                res = DriverAPINativeMethods.ContextManagement.cuCtxCreate_v2(ref _context, flags, _device);
+                CUctxCreateParams cuCtxCreateParams = new CUctxCreateParams();
+                cuCtxCreateParams.cigParams = IntPtr.Zero;
+                cuCtxCreateParams.execAffinityParams = IntPtr.Zero;
+                cuCtxCreateParams.numExecAffinityParams = 0;
+                res = DriverAPINativeMethods.ContextManagement.cuCtxCreate(ref _context, ref cuCtxCreateParams, flags, _device);
                 Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxCreate", res));
                 if (res != CUResult.Success)
                     throw new CudaException(res);
@@ -264,17 +268,36 @@ namespace ManagedCuda
             if (res != CUResult.Success)
                 throw new CudaException(res);
 
-            int paramsCount = 0;
-            if (paramsArray != null)
-            {
-                paramsCount = paramsArray.Length;
-            }
+            CUctxCreateParams cuCtxCreateParams = new CUctxCreateParams();
+            cuCtxCreateParams.cigParams = IntPtr.Zero;
+            cuCtxCreateParams.execAffinityParams = IntPtr.Zero;
+            cuCtxCreateParams.numExecAffinityParams = 0;
+            GCHandle ptrCigParams = new GCHandle();
 
-            res = DriverAPINativeMethods.ContextManagement.cuCtxCreate_v3(ref _context, paramsArray, paramsCount, flags, _device);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxCreate_v3", res));
-            if (res != CUResult.Success)
-                throw new CudaException(res);
-            _contextOwner = true;
+            try
+            {
+                if (paramsArray != null)
+                {
+                    ptrCigParams = GCHandle.Alloc(paramsArray, GCHandleType.Pinned);
+                    cuCtxCreateParams.execAffinityParams = ptrCigParams.AddrOfPinnedObject();
+                    cuCtxCreateParams.execAffinityParams = IntPtr.Zero;
+                    cuCtxCreateParams.numExecAffinityParams = paramsArray.Length;
+                }
+                res = DriverAPINativeMethods.ContextManagement.cuCtxCreate(ref _context, ref cuCtxCreateParams, flags, _device);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxCreate", res));
+                if (res != CUResult.Success)
+                    throw new CudaException(res);
+
+                _contextOwner = true;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                ptrCigParams.Free();
+            }
         }
 
 
@@ -329,8 +352,8 @@ namespace ManagedCuda
                 ptrCigParams = GCHandle.Alloc(cigParams, GCHandleType.Pinned);
                 createParams.cigParams = ptrCigParams.AddrOfPinnedObject();
 
-                res = DriverAPINativeMethods.ContextManagement.cuCtxCreate_v4(ref _context, ref createParams, flags, _device);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxCreate_v4", res));
+                res = DriverAPINativeMethods.ContextManagement.cuCtxCreate(ref _context, ref createParams, flags, _device);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxCreate", res));
                 if (res != CUResult.Success)
                     throw new CudaException(res);
             }
@@ -6382,6 +6405,12 @@ namespace ManagedCuda
             if (res != CUResult.Success) throw new CudaException(res);
             props.MemDecompressMaximumLength = memDecompressMaximumLength;
 
+            int vulkanCIGSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref vulkanCIGSupported, CUDeviceAttribute.VulkanCIGSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.VulkanCIGSupported = vulkanCIGSupported != 0;
+
             int gpuPciDeviceID = 0;
             res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref gpuPciDeviceID, CUDeviceAttribute.GpuPciDeviceID, device);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
@@ -6394,11 +6423,47 @@ namespace ManagedCuda
             if (res != CUResult.Success) throw new CudaException(res);
             props.GpuPciSubsystemID = gpuPciSubsystemID;
 
+            int hostNUMAVirtualMemoryManagementSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref hostNUMAVirtualMemoryManagementSupported, CUDeviceAttribute.HostNUMAVirtualMemoryManagementSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.HostNUMAVirtualMemoryManagementSupported = hostNUMAVirtualMemoryManagementSupported != 0;
+
+            int hostNUMAMemoryPoolsSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref hostNUMAMemoryPoolsSupported, CUDeviceAttribute.HostNUMAMemoryPoolsSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.HostNUMAMemoryPoolsSupported = hostNUMAMemoryPoolsSupported != 0;
+
             int hostNUMAMultinodeIPCSupported = 0;
             res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref hostNUMAMultinodeIPCSupported, CUDeviceAttribute.HostNUMAMultinodeIPCSupported, device);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
             if (res != CUResult.Success) throw new CudaException(res);
             props.HostNUMAMultinodeIPCSupported = hostNUMAMultinodeIPCSupported != 0;
+
+            int hostMemoryPoolsSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref hostMemoryPoolsSupported, CUDeviceAttribute.HostMemoryPoolsSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.HostMemoryPoolsSupported = hostMemoryPoolsSupported != 0;
+
+            int hostVirtualMemoryManagementSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref hostVirtualMemoryManagementSupported, CUDeviceAttribute.HostVirtualMemoryManagementSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.HostVirtualMemoryManagementSupported = hostVirtualMemoryManagementSupported != 0;
+
+            int hostAllocDMABufSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref hostAllocDMABufSupported, CUDeviceAttribute.HostAllocDMABufSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.HostAllocDMABufSupported = hostAllocDMABufSupported != 0;
+
+            int onlyPartialHostNativeAtomicSupported = 0;
+            res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetAttribute(ref onlyPartialHostNativeAtomicSupported, CUDeviceAttribute.OnlyPartialHostNativeAtomicSupported, device);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetAttribute", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            props.OnlyPartialHostNativeAtomicSupported = onlyPartialHostNativeAtomicSupported != 0;
 
             return props;
         }

@@ -131,54 +131,62 @@ namespace ManagedCuda.NvJitLink
                     message = "No Error.";
                     break;
                 case nvJitLinkResult.ErrorUnrecognizedOption:
-                    message = "ErrorUnrecognizedOption";
+                    message = "Unrecognized Option";
                     break;
                 case nvJitLinkResult.ErrorMissingArch:
                     message = "ErrorMissingArch: -arch=sm_NN option not specified";
                     break;
                 case nvJitLinkResult.ErrorInvalidInput:
-                    message = "ErrorInvalidInput";
+                    message = "Invalid Input";
                     break;
                 case nvJitLinkResult.ErrorPtxCompile:
-                    message = "ErrorPtxCompile";
+                    message = "Issue during PTX Compilation";
                     break;
                 case nvJitLinkResult.ErrorNVVMCompile:
-                    message = "ErrorNVVMCompile";
+                    message = "Issue during NVVM Compilation";
                     break;
                 case nvJitLinkResult.ErrorInternal:
-                    message = "ErrorInternal";
+                    message = "Internal Error";
                     break;
                 case nvJitLinkResult.ErrorThreadPool:
-                    message = "ErrorThreadPool";
+                    message = "Issue with Thread Pool";
                     break;
                 case nvJitLinkResult.UnrecognizedInput:
-                    message = "UnrecognizedInput";
+                    message = "Unrecognized Input";
                     break;
                 case nvJitLinkResult.ErrorFinalize:
-                    message = "ErrorFinalize";
+                    message = "Finalizer Error";
                     break;
                 case nvJitLinkResult.NullInput:
-                    message = "NullInput";
+                    message = "Null Input";
                     break;
                 case nvJitLinkResult.IncompatibleOptions:
-                    message = "IncompatibleOptions";
+                    message = "Incompatible Options";
                     break;
                 case nvJitLinkResult.IncorrectInputType:
-                    message = "IncorrectInputType";
+                    message = "Incorrect Input Type";
                     break;
                 case nvJitLinkResult.ArchMismatch:
-                    message = "ArchMismatch";
+                    message = "Arch Mismatch";
                     break;
                 case nvJitLinkResult.OutdatedLibrary:
-                    message = "OutdatedLibrary";
+                    message = "Outdated Library";
                     break;
                 case nvJitLinkResult.MissingFatBin:
-                    message = "MissingFatBin";
+                    message = "Missing Fatbin";
+                    break;
+                case nvJitLinkResult.UnrecognizedArch:
+                    message = "Unrecognized -arch value";
+                    break;
+                case nvJitLinkResult.UnsupportedArch:
+                    message = "Unsupported -arch value";
+                    break;
+                case nvJitLinkResult.LTONotEnabled:
+                    message = "Requires -lto";
                     break;
                 default:
                     break;
             }
-
             return error.ToString() + ": " + message;
         }
         #endregion

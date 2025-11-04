@@ -366,7 +366,8 @@ namespace ManagedCuda.CudaSparse
         CUSPARSE_SPMV_CSR_ALG2 = 3,
         CUSPARSE_SPMV_COO_ALG1 = 1,
         CUSPARSE_SPMV_COO_ALG2 = 4,
-        CUSPARSE_SPMV_SELL_ALG1 = 5
+        CUSPARSE_SPMV_SELL_ALG1 = 5,
+        CUSPARSE_SPMV_BSR_ALG1 = 6
     }
 
     /// <summary>

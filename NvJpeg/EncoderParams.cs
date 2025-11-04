@@ -24,9 +24,9 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NvJpeg
 {
@@ -128,6 +128,14 @@ namespace ManagedCuda.NvJpeg
         {
             res = NvJpegNativeMethods.nvjpegEncoderParamsSetSamplingFactors(_params, chroma_subsampling, stream.Stream);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncoderParamsSetSamplingFactors", res));
+            if (res != nvjpegStatus.Success)
+                throw new NvJpegException(res);
+        }
+
+        public void SetRestartInterval(uint restart_interval, CudaStream stream)
+        {
+            res = NvJpegNativeMethods.nvjpegEncoderParamsSetRestartInterval(_params, restart_interval, stream.Stream);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncoderParamsSetRestartInterval", res));
             if (res != nvjpegStatus.Success)
                 throw new NvJpegException(res);
         }

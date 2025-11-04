@@ -78,17 +78,9 @@ namespace ManagedCuda.CudaFFT
         /// </summary>
         UnalignedData = 0x9,
         /// <summary>
-        /// 
-        /// </summary>
-        IncompleteParameterList = 0xA,
-        /// <summary>
         /// Plan creation and execution are on different device
         /// </summary>
         InvalidDevice = 0xB,
-        /// <summary>
-        /// 
-        /// </summary>
-        ParseError = 0xC,
         /// <summary>
         /// Workspace not initialized
         /// </summary>
@@ -98,13 +90,25 @@ namespace ManagedCuda.CudaFFT
         /// </summary>
         NotImplemented = 0xE,
         /// <summary>
-        /// License error
-        /// </summary>
-        LicenseError = 0xF,
-        /// <summary>
         /// Not supported error
         /// </summary>
-        NotSupported = 0x10
+        NotSupported = 0x10,
+        /// <summary>
+        /// Missing dependency error
+        /// </summary>
+        MissingDependency = 0x11,
+        /// <summary>
+        /// NVRTC failure error
+        /// </summary>
+        NvrtcFailure = 0x12,
+        /// <summary>
+        /// NVJITLINK failure error
+        /// </summary>
+        NvjitlinkFailure = 0x13,
+        /// <summary>
+        /// NVSHMEM failure error
+        /// </summary>
+        NvshmemFailure = 0x14
     }
 
     /// <summary>
@@ -116,7 +120,7 @@ namespace ManagedCuda.CudaFFT
         /// <summary>
         /// 
         /// </summary>
-        public uint Handle;
+        public int Handle;
 
         /// <summary>
         /// Creates only an opaque handle, and allocates small data structures on the host. The
@@ -191,20 +195,6 @@ namespace ManagedCuda.CudaFFT
                 throw new CudaFFTException(res);
         }
 
-        ///// <summary>
-        ///// configures the layout of CUFFT output in FFTW‐compatible modes.
-        ///// When FFTW compatibility is desired, it can be configured for padding
-        ///// only, for asymmetric complex inputs only, or to be fully compatible.
-        ///// </summary>
-        ///// <param name="mode">The <see cref="Compatibility"/> option to be used</param>
-        //public void SetCompatibilityMode(Compatibility mode)
-        //{
-        //	cufftResult res = CudaFFTNativeMethods.cufftSetCompatibilityMode(this, mode);
-        //	Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cufftSetCompatibilityMode", res));
-        //	if (res != cufftResult.Success)
-        //		throw new CudaFFTException(res);
-        //}
-
 
         /// <summary>
         /// Associates a cuFFT plan with a property identified by the key property. The value for the property is given by value propertyValueInt64, which is a signed long long integer.
@@ -239,6 +229,17 @@ namespace ManagedCuda.CudaFFT
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cufftResetPlanProperty", res));
             if (res != cufftResult.Success)
                 throw new CudaFFTException(res);
+        }
+
+        /// <summary>
+        /// an uninitialized cufftHandle that is safe to call cufftDestroy on
+        /// </summary>
+        /// <returns></returns>
+        public static cufftHandle NullHandle()
+        {
+            cufftHandle ret = new cufftHandle();
+            ret.Handle = -1;
+            return ret;
         }
     }
 

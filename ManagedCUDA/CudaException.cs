@@ -154,17 +154,11 @@ namespace ManagedCuda
                 case CUResult.ErrorProfilerDisabled:
                     message = "This indicates profiling APIs are called while application is running in visual profiler mode.";
                     break;
-                //case CUResult.ErrorProfilerNotInitialized:
-                //    message = "This indicates profiling has not been initialized for this context. Call cuProfilerInitialize() to resolve this.";
-                //    break;
-                //case CUResult.ErrorProfilerAlreadyStarted:
-                //    message = "This indicates profiler has already been started and probably cuProfilerStart() is incorrectly called.";
-                //    break;
-                //case CUResult.ErrorProfilerAlreadyStopped:
-                //    message = "This indicates profiler has already been stopped and probably cuProfilerStop() is incorrectly called.";
-                //    break;
                 case CUResult.ErrorStubLibrary:
                     message = "This indicates that the CUDA driver that the application has loaded is a stub library. Applications that run with the stub rather than a real driver loaded will result in CUDA API returning this error.";
+                    break;
+                case CUResult.ErrorCallRequiresNewerDriver:
+                    message = "This indicates that the API call requires a newer CUDA driver than the one currently installed. Users should install an updated NVIDIA CUDA driver to allow the API call to succeed.";
                     break;
                 case CUResult.ErrorDeviceUnavailable:
                     message = "This indicates that requested CUDA device is unavailable at the current time. Devices are often unavailable due to use of ::CU_COMPUTEMODE_EXCLUSIVE_PROCESS or ::CU_COMPUTEMODE_PROHIBITED.";
@@ -184,10 +178,6 @@ namespace ManagedCuda
                 case CUResult.ErrorInvalidContext:
                     message = "This most frequently indicates that there is no context bound to the current thread. This can also be returned if the context passed to an API call is not a valid handle (such as a context that has had cuCtxDestroy() invoked on it). This can also be returned if a user mixes different API versions (i.e. 3010 context with 3020 API calls). See cuCtxGetApiVersion() for more details.";
                     break;
-                //CUResult.ErrorContextAlreadyCurrent is marked obsolet since CUDA version 3.2
-                //case CUResult.ErrorContextAlreadyCurrent:
-                //    message = "This indicated that the context being supplied as a parameter to the API call was already the active context.";
-                //    break;
                 case CUResult.ErrorMapFailed:
                     message = "This indicates that a map or register operation has failed.";
                     break;

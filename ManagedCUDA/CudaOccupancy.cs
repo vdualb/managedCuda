@@ -26,6 +26,7 @@
 
 using ManagedCuda.BasicTypes;
 using System;
+using System.Xml.Linq;
 
 namespace ManagedCuda
 {
@@ -117,6 +118,10 @@ namespace ManagedCuda
             /// Number of block barriers used (default to 1)
             /// </summary>
             public int numBlockBarriers;
+            /// <summary>
+            /// Amount of virtual resources used.
+            /// </summary>
+            public int virtualResourceCount;
 
             /// <summary>
             /// 
@@ -144,6 +149,7 @@ namespace ManagedCuda
                 shmemLimitConfig = aShmemConfig;
                 maxDynamicSharedSizeBytes = aMaxDynamicSharedMemSizeBytes;
                 numBlockBarriers = 1;
+                virtualResourceCount = 0;
             }
 
             /// <summary>
@@ -224,7 +230,11 @@ namespace ManagedCuda
             /// <summary>
             /// occupancy limited due to barrier available
             /// </summary>
-            Barriers = 0x10
+            Barriers = 0x10,
+            /// <summary>
+            /// occupancy limited due to virtual resources available
+            /// </summary>
+            VirtualResources = 0x20
         };
 
 
@@ -324,6 +334,8 @@ namespace ManagedCuda
             /// <summary/>
             public int BlockLimitBarriers;
             /// <summary/>
+            public int BlockLimitVirtual;
+            /// <summary/>
             public int AllocatedRegistersPerBlock;
             /// <summary/>
             public SizeT AllocatedSharedMemPerBlock;
@@ -384,6 +396,7 @@ namespace ManagedCuda
                 case 8:
                 case 9:
                 case 10:
+                case 11:
                 case 12: return 128;
                 default: throw new CudaOccupancyException(cudaOccError.ErrorUnknownDevice);
             }
@@ -404,6 +417,7 @@ namespace ManagedCuda
                 case 8:
                 case 9:
                 case 10:
+                case 11:
                 case 12: return 256;
                 default: throw new CudaOccupancyException(cudaOccError.ErrorUnknownDevice);
             }
@@ -424,6 +438,7 @@ namespace ManagedCuda
                 case 8:
                 case 9:
                 case 10:
+                case 11:
                 case 12: return 256;
                 default: throw new CudaOccupancyException(cudaOccError.ErrorUnknownDevice);
             }
@@ -452,6 +467,7 @@ namespace ManagedCuda
                 case 8: return 4;
                 case 9: return 4;
                 case 10: return 4;
+                case 11: return 4;
                 case 12: return 4;
                 default: throw new CudaOccupancyException(cudaOccError.ErrorUnknownDevice);
             }
@@ -502,10 +518,21 @@ namespace ManagedCuda
                         value = 32;
                     }
                     return value;
+                case 11:
+                    if (properties.computeMinor == 0)
+                    {
+                        value = 24;
+                    }
+                    else
+                    {
+                        value = 32;
+                    }
+                    break;
                 case 12:
                     return 24;
                 default: throw new CudaOccupancyException(cudaOccError.ErrorUnknownDevice);
             }
+            return 0;
         }
         /** 
          * Align up shared memory based on compute major configurations
@@ -694,6 +721,7 @@ namespace ManagedCuda
                         break;
                     }
                 case 10:
+                case 11:
                     {
                         switch (properties.computeMinor)
                         {
@@ -701,6 +729,7 @@ namespace ManagedCuda
                             // shared memory configs
                             case 0:
                             case 1:
+                            case 3:
                                 if (size == 0)
                                 {
                                     shMemSize = 0;
@@ -756,6 +785,7 @@ namespace ManagedCuda
                         switch (properties.computeMinor)
                         {
                             case 0:
+                            case 1:
                                 if (size == 0)
                                 {
                                     shMemSize = 0;
@@ -958,6 +988,7 @@ namespace ManagedCuda
                 case 8:
                 case 9:
                 case 10:
+                case 11:
                 case 12:
                     switch (shmemLimitConfig)
                     {
@@ -1014,6 +1045,22 @@ namespace ManagedCuda
             return limit;
         }
 
+
+        /**
+         * Max virtual resource count per SM
+         */
+        private static int cudaOccMaxVirtualResourceCountPerSM(cudaOccDeviceProp properties)
+        {
+            switch (properties.computeMajor)
+            {
+                case 10:
+                case 11:
+                case 12:
+                    return 128;
+                default:
+                    return 0;
+            }
+        }
 
 
         ///////////////////////////////////////////////
@@ -1426,6 +1473,16 @@ namespace ManagedCuda
                         numBarriersAvailable = ctaLimitBlocks * 2;
                     }
                     break;
+                case 11:
+                    if (properties.computeMinor == 0)
+                    {
+                        numBarriersAvailable = ctaLimitBlocks;
+                    }
+                    else
+                    {
+                        numBarriersAvailable = ctaLimitBlocks * 2;
+                    }
+                    break;
                 case 12:
                     numBarriersAvailable = ctaLimitBlocks;
                     break;
@@ -1440,6 +1497,31 @@ namespace ManagedCuda
 
             return maxBlocks;
         }
+
+        /**
+         * Compute occupancy based on virtual resource count
+         */
+        private static int cudaOccMaxBlocksPerSMVirtualResource(cudaOccDeviceProp properties, cudaOccFuncAttributes attributes)
+        {
+            int maxVirtualResourcePerSM = 0;
+            int maxBlocks = int.MaxValue;
+
+            // Get the maximum virtual resource count per SM for this device
+            maxVirtualResourcePerSM = cudaOccMaxVirtualResourceCountPerSM(properties);
+
+            // If the device doesn't support virtual resources or the kernel doesn't use them,
+            // this limit doesn't apply
+            if (maxVirtualResourcePerSM <= 0 || attributes.virtualResourceCount <= 0)
+            {
+                return int.MaxValue;
+            }
+
+            // Calculate the maximum number of blocks based on virtual resource usage
+            maxBlocks = maxVirtualResourcePerSM / attributes.virtualResourceCount;
+
+            return maxBlocks;
+        }
+
         ///////////////////////////////////
         //      API Implementations      //
         ///////////////////////////////////
@@ -1470,6 +1552,7 @@ namespace ManagedCuda
             int ctaLimitSMem = 0;
             int ctaLimitRegs = 0;
             int ctaLimitBars = 0;
+            int ctaLimitVirtual = 0;
             int ctaLimit = 0;
             cudaOccLimitingFactors limitingFactors = 0;
 
@@ -1548,6 +1631,10 @@ namespace ManagedCuda
             //
             ctaLimitSMem = cudaOccMaxBlocksPerSMSmemLimit(result, properties, attributes, state, blockSize, dynamicSmemSize);
 
+            // Limits due to virtual resources/SM
+            //
+            ctaLimitVirtual = cudaOccMaxBlocksPerSMVirtualResource(properties, attributes);
+
 
             ///////////////////////////
             // Overall occupancy
@@ -1555,7 +1642,7 @@ namespace ManagedCuda
 
             // Overall limit is min() of limits due to above reasons
             //
-            ctaLimit = __occMin(ctaLimitRegs, __occMin(ctaLimitSMem, __occMin(ctaLimitWarps, ctaLimitBlocks)));
+            ctaLimit = __occMin(ctaLimitRegs, __occMin(ctaLimitSMem, __occMin(ctaLimitWarps, __occMin(ctaLimitBlocks, ctaLimitVirtual))));
 
             // Determine occupancy limiting factors
             //
@@ -1574,6 +1661,10 @@ namespace ManagedCuda
             if (ctaLimit == ctaLimitBlocks)
             {
                 limitingFactors |= cudaOccLimitingFactors.Blocks;
+            }
+            if (ctaLimit == ctaLimitVirtual)
+            {
+                limitingFactors |= cudaOccLimitingFactors.VirtualResources;
             }
 
 
@@ -1610,6 +1701,7 @@ namespace ManagedCuda
             result.BlockLimitWarps = ctaLimitWarps;
             result.BlockLimitBlocks = ctaLimitBlocks;
             result.BlockLimitBarriers = ctaLimitBars;
+            result.BlockLimitVirtual = ctaLimitVirtual;
             result.partitionedGCConfig = gcConfig;
 
             // Final occupancy

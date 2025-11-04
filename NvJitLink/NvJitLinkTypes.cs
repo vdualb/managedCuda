@@ -37,38 +37,78 @@ namespace ManagedCuda.NvJitLink
     {
         /// <summary/>
         Success = 0,
-        /// <summary/>
+        /// <summary>
+        /// Unrecognized Option
+        /// </summary>
         ErrorUnrecognizedOption,
         /// <summary>
         /// -arch=sm_NN option not specified
         /// </summary>
         ErrorMissingArch,
-        /// <summary/>
+        /// <summary>
+        /// Invalid Input
+        /// </summary>
         ErrorInvalidInput,
-        /// <summary/>
+        /// <summary>
+        /// Issue during PTX Compilation
+        /// </summary>
         ErrorPtxCompile,
-        /// <summary/>
+        /// <summary>
+        /// Issue during NVVM Compilation
+        /// </summary>
         ErrorNVVMCompile,
-        /// <summary/>
+        /// <summary>
+        /// Internal Error
+        /// </summary>
         ErrorInternal,
-        /// <summary/>
+        /// <summary>
+        /// Issue with Thread Pool
+        /// </summary>
         ErrorThreadPool,
-        /// <summary/>
+        /// <summary>
+        /// Unrecognized Input
+        /// </summary>
         UnrecognizedInput,
-        /// <summary/>
+        /// <summary>
+        /// Finalizer Error
+        /// </summary>
         ErrorFinalize,
-        /// <summary/>
+        /// <summary>
+        /// Null Input
+        /// </summary>
         NullInput,
-        /// <summary/>
+        /// <summary>
+        /// Incompatible Options
+        /// </summary>
         IncompatibleOptions,
-        /// <summary/>
+        /// <summary>
+        /// Incorrect Input Type
+        /// </summary>
         IncorrectInputType,
-        /// <summary/>
+        /// <summary>
+        /// Arch Mismatch
+        /// </summary>
         ArchMismatch,
-        /// <summary/>
+        /// <summary>
+        /// Outdated Library
+        /// </summary>
         OutdatedLibrary,
-        /// <summary/>
-        MissingFatBin
+        /// <summary>
+        /// Missing Fatbin
+        /// </summary>
+        MissingFatBin,
+        /// <summary>
+        /// Unrecognized -arch value
+        /// </summary>
+        UnrecognizedArch,
+        /// <summary>
+        /// Unsupported -arch value
+        /// </summary>
+        UnsupportedArch,
+        /// <summary>
+        /// Requires -lto
+        /// </summary>
+        LTONotEnabled
     }
 
     /// <summary>
@@ -78,25 +118,39 @@ namespace ManagedCuda.NvJitLink
 	public enum nvJitLinkInputType
     {
         /// <summary>
-        /// Error
+        /// Error Type
         /// </summary>
-        None = 0, // error
-        /// <summary/>
+        None = 0,
+        /// <summary>
+        /// For CUDA Binaries
+        /// </summary>
         Cubin = 1,
-        /// <summary/>
+        /// <summary>
+        /// For PTX
+        /// </summary>
         Ptx,
-        /// <summary/>
+        /// <summary>
+        /// For LTO-IR
+        /// </summary>
         LTOIR,
-        /// <summary/>
+        /// <summary>
+        /// For Fatbin
+        /// </summary>
         FatBin,
-        /// <summary/>
+        /// <summary>
+        /// For Host Object
+        /// </summary>
         Object,
-        /// <summary/>
+        /// <summary>
+        /// For Host Library
+        /// </summary>
         Library,
-        /// <summary/>
+        /// <summary>
+        /// For Index File
+        /// </summary>
         Index,
         /// <summary>
-        /// will dynamically determine one of above types
+        /// Dynamically chooses from the valid types
         /// </summary>
         Any = 10
     }

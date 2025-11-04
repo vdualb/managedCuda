@@ -516,7 +516,7 @@ namespace ManagedCuda
             }
 
             CUdevice device = new CUdevice();
-            res = DriverAPINativeMethods.ContextManagement.cuCtxGetDevice(ref device);
+            res = DriverAPINativeMethods.ContextManagement.cuCtxGetDevice(ref device, new CUcontext());
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuCtxGetDevice", res));
             if (res != CUResult.Success)
                 throw new CudaException(res);

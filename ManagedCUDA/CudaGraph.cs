@@ -24,11 +24,11 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-using System;
 using ManagedCuda.BasicTypes;
+using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace ManagedCuda
 {
@@ -553,39 +553,6 @@ namespace ManagedCuda
             return node;
         }
 
-        /// <summary>
-        /// Adds a node of arbitrary type to a graph
-        /// 
-        /// Creates a new node in \p hGraph described by \p nodeParams with \p numDependencies
-        /// dependencies specified via \p dependencies. \p numDependencies may be 0.
-        /// \p dependencies may be null if \p numDependencies is 0. \p dependencies may not have
-        /// any duplicate entries.
-        /// 
-        /// \p nodeParams is a tagged union. The node type should be specified in the \p type field,
-        /// and type-specific parameters in the corresponding union member. All unused bytes - that
-        /// is, \p reserved0 and all bytes past the utilized union member - must be set to zero.
-        /// It is recommended to use brace initialization or memset to ensure all bytes are
-        /// initialized.
-        /// 
-        /// Note that for some node types, \p nodeParams may contain "out parameters" which are
-        /// modified during the call, such as \p nodeParams->alloc.dptr.
-        /// </summary>
-        /// <param name="dependencies">Dependencies of the node</param>
-        /// <param name="nodeParams">Specification of the node</param>
-        /// <returns>Returns newly created node</returns>
-        public CUgraphNode AddNode(CUgraphNode[] dependencies, ref CUgraphNodeParams nodeParams)
-        {
-            CUgraphNode node = new CUgraphNode();
-            SizeT numDependencies = 0;
-            if (dependencies != null)
-                numDependencies = dependencies.Length;
-
-            res = DriverAPINativeMethods.GraphManagment.cuGraphAddNode(ref node, _graph, dependencies, numDependencies, ref nodeParams);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphAddNode", res));
-            if (res != CUResult.Success) throw new CudaException(res);
-
-            return node;
-        }
 
         /// <summary>
         /// Adds a node of arbitrary type to a graph
@@ -621,8 +588,8 @@ namespace ManagedCuda
                 }
             }
 
-            res = DriverAPINativeMethods.GraphManagment.cuGraphAddNode_v2(ref node, _graph, dependencies, edgeData, numDependencies, ref nodeParams);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphAddNode_v2", res));
+            res = DriverAPINativeMethods.GraphManagment.cuGraphAddNode(ref node, _graph, dependencies, edgeData, numDependencies, ref nodeParams);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphAddNode", res));
             if (res != CUResult.Success) throw new CudaException(res);
 
             return node;
@@ -747,30 +714,6 @@ namespace ManagedCuda
         /// </summary>
         /// <param name="from"></param>
         /// <param name="to"></param>
-        public void GetEdges(out CUgraphNode[] from, out CUgraphNode[] to)
-        {
-            from = null;
-            to = null;
-            SizeT numNodes = new SizeT();
-            res = DriverAPINativeMethods.GraphManagment.cuGraphGetEdges(_graph, null, null, ref numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphGetEdges", res));
-            if (res != CUResult.Success) throw new CudaException(res);
-
-            if (numNodes > 0)
-            {
-                from = new CUgraphNode[numNodes];
-                to = new CUgraphNode[numNodes];
-                res = DriverAPINativeMethods.GraphManagment.cuGraphGetEdges(_graph, from, to, ref numNodes);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphGetNodes", res));
-                if (res != CUResult.Success) throw new CudaException(res);
-            }
-        }
-
-        /// <summary>
-        /// Returns a graph's dependency edges
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
         /// <param name="edgeData"></param>
         public void GetEdges(out CUgraphNode[] from, out CUgraphNode[] to, out CUgraphEdgeData[] edgeData)
         {
@@ -778,8 +721,8 @@ namespace ManagedCuda
             to = null;
             edgeData = null;
             SizeT numNodes = new SizeT();
-            res = DriverAPINativeMethods.GraphManagment.cuGraphGetEdges_v2(_graph, null, null, null, ref numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphGetEdges_v2", res));
+            res = DriverAPINativeMethods.GraphManagment.cuGraphGetEdges(_graph, null, null, null, ref numNodes);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphGetEdges", res));
             if (res != CUResult.Success) throw new CudaException(res);
 
             if (numNodes > 0)
@@ -787,31 +730,10 @@ namespace ManagedCuda
                 from = new CUgraphNode[numNodes];
                 to = new CUgraphNode[numNodes];
                 edgeData = new CUgraphEdgeData[numNodes];
-                res = DriverAPINativeMethods.GraphManagment.cuGraphGetEdges_v2(_graph, from, to, edgeData, ref numNodes);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphGetEdges_v2", res));
+                res = DriverAPINativeMethods.GraphManagment.cuGraphGetEdges(_graph, from, to, edgeData, ref numNodes);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphGetEdges", res));
                 if (res != CUResult.Success) throw new CudaException(res);
             }
-        }
-
-        /// <summary>
-        /// Adds dependency edges to a graph
-        /// Elements in from and to at corresponding indices define a dependency.<para/>
-        /// Each node in from and to must belong to this Graph.<para/>
-        /// Specifying an existing dependency will return an error.
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        public void AddDependencies(CUgraphNode[] from, CUgraphNode[] to)
-        {
-            if (from.Length != to.Length)
-            {
-                throw new ArgumentException("from and to must have equal size!");
-            }
-
-            SizeT numNodes = from.Length;
-            res = DriverAPINativeMethods.GraphManagment.cuGraphAddDependencies(_graph, from, to, numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphAddDependencies", res));
-            if (res != CUResult.Success) throw new CudaException(res);
         }
 
         /// <summary>
@@ -835,29 +757,8 @@ namespace ManagedCuda
             }
 
             SizeT numNodes = from.Length;
-            res = DriverAPINativeMethods.GraphManagment.cuGraphAddDependencies_v2(_graph, from, to, edgeData, numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphAddDependencies_v2", res));
-            if (res != CUResult.Success) throw new CudaException(res);
-        }
-
-        /// <summary>
-        /// Removes dependency edges to a graph
-        /// Elements in from and to at corresponding indices define a dependency.<para/>
-        /// Each node in from and to must belong to this Graph.<para/>
-        /// Specifying an existing dependency will return an error.
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        public void RemoveDependencies(CUgraphNode[] from, CUgraphNode[] to)
-        {
-            if (from.Length != to.Length)
-            {
-                throw new ArgumentException("from and to must have equal size!");
-            }
-
-            SizeT numNodes = from.Length;
-            res = DriverAPINativeMethods.GraphManagment.cuGraphRemoveDependencies(_graph, from, to, numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphRemoveDependencies", res));
+            res = DriverAPINativeMethods.GraphManagment.cuGraphAddDependencies(_graph, from, to, edgeData, numNodes);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphAddDependencies", res));
             if (res != CUResult.Success) throw new CudaException(res);
         }
 
@@ -882,8 +783,8 @@ namespace ManagedCuda
             }
 
             SizeT numNodes = from.Length;
-            res = DriverAPINativeMethods.GraphManagment.cuGraphRemoveDependencies_v2(_graph, from, to, edgeData, numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphRemoveDependencies_v2", res));
+            res = DriverAPINativeMethods.GraphManagment.cuGraphRemoveDependencies(_graph, from, to, edgeData, numNodes);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphRemoveDependencies", res));
             if (res != CUResult.Success) throw new CudaException(res);
         }
 

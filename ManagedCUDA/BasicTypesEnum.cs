@@ -956,6 +956,10 @@ namespace ManagedCuda.BasicTypes
         /// </summary>
         MemDecompressMaximumLength = 137,
         /// <summary>
+        /// Device supports CIG with Vulkan.
+        /// </summary>
+        VulkanCIGSupported = 138,
+        /// <summary>
         /// The combined 16-bit PCI device ID and 16-bit PCI vendor ID.
         /// </summary>
         GpuPciDeviceID = 139,
@@ -964,9 +968,33 @@ namespace ManagedCuda.BasicTypes
         /// </summary>
         GpuPciSubsystemID = 140,
         /// <summary>
+        /// Device supports HOST_NUMA location with the virtual memory management APIs like ::cuMemCreate, ::cuMemMap and related APIs
+        /// </summary>
+        HostNUMAVirtualMemoryManagementSupported = 141,
+        /// <summary>
+        /// Device supports HOST_NUMA location with the ::cuMemAllocAsync and ::cuMemPool family of APIs
+        /// </summary>
+        HostNUMAMemoryPoolsSupported = 142,
+        /// <summary>
         /// Device supports HOST_NUMA location IPC between nodes in a multi-node system.
         /// </summary>
         HostNUMAMultinodeIPCSupported = 143,
+        /// <summary>
+        /// Device suports HOST location with the ::cuMemAllocAsync and ::cuMemPool family of APIs
+        /// </summary>
+        HostMemoryPoolsSupported = 144,
+        /// <summary>
+        /// Device supports HOST location with the virtual memory management APIs like ::cuMemCreate, ::cuMemMap and related APIs
+        /// </summary>
+        HostVirtualMemoryManagementSupported = 145,
+        /// <summary>
+        /// Device supports page-locked host memory buffer sharing with dma_buf mechanism.
+        /// </summary>
+        HostAllocDMABufSupported = 146,
+        /// <summary>
+        /// Link between the device and the host supports only some native atomic operations
+        /// </summary>
+        OnlyPartialHostNativeAtomicSupported = 147,
         /// <summary>
         /// Max elems...
         /// </summary>
@@ -1496,10 +1524,21 @@ namespace ManagedCuda.BasicTypes
         /// ::CU_JIT_THREADS_PER_BLOCK, ::CU_JIT_MAX_THREADS_PER_BLOCK and
         /// ::CU_JIT_MIN_CTA_PER_SM take precedence over any PTX directives.
         /// (0: Disable, default; 1: Enable)<para/>
-        /// Option type: int\n<para/>
+        /// Option type: int<para/>
         /// Applies to: compiler only
         /// </summary>
         OverrideDirectiveValues = 33,
+
+        /// <summary>
+        /// This option specifies the maximum number of concurrent threads to use
+        /// when running compiler optimizations. If the specified value is 1, the
+        /// option will be ignored. If the specified value is 0, the number of
+        /// threads will match the number of CPUs on the underlying machine.<para/>
+        /// Otherwise, if the option is N, then up to N threads will be used.<para/>
+        /// Option type: unsigned int<para/>
+        /// Applies to: compiler only
+        /// </summary>
+        SplitCompile = 34,
     }
 
     /// <summary>
@@ -1599,13 +1638,21 @@ namespace ManagedCuda.BasicTypes
         /// </summary>
         Compute_100 = 100,
         /// <summary>
-        /// Compute device class 10.1.
+        /// Compute device class 11.0.
         /// </summary>
-        Compute_101 = 101,
+        Compute_110 = 110,
+        /// <summary>
+        /// Compute device class 10.3.
+        /// </summary>
+        Compute_103 = 103,
         /// <summary>
         /// Compute device class 12.0.
         /// </summary>
         Compute_120 = 120,
+        /// <summary>
+        /// Compute device class 12.1.
+        /// </summary>
+        Compute_121 = 121,
 
         /// <summary>
         /// Compute device class 9.0. with accelerated features.
@@ -1616,15 +1663,47 @@ namespace ManagedCuda.BasicTypes
         /// </summary>
         Compute_100A = 0x10000 + Compute_100,
         /// <summary>
-        /// Compute device class 10.1 with accelerated features.
+        /// Compute device class 11.0 with accelerated features.
         /// </summary>
-        Compute_101A = 0x10000 + Compute_101,
+        Compute_110A = 0x10000 + Compute_110,
+        /// <summary>
+        /// Compute device class 10.3. with accelerated features.
+        /// </summary>
+        Compute_103A = 0x10000 + Compute_103,
         /// <summary>
         /// Compute device class 12.0. with accelerated features.
         /// </summary>
         Compute_120A = 0x10000 + Compute_120,
+        /// <summary>
+        /// Compute device class 12.1. with accelerated features.
+        /// </summary>
+        Compute_121A = 0x10000 + Compute_121,
+
+
+        /// <summary>
+        /// Compute device class 10.0. with family features.
+        /// </summary>
+        Compute_100F = 0x20000 + Compute_100,
+        /// <summary>
+        /// Compute device class 11.0 with family features.
+        /// </summary>
+        Compute_110F = 0x20000 + Compute_110,
+        /// <summary>
+        /// Compute device class 10.3. with family features.
+        /// </summary>
+        Compute_103F = 0x20000 + Compute_103,
+        /// <summary>
+        /// Compute device class 12.0. with family features.
+        /// </summary>
+        Compute_120F = 0x20000 + Compute_120,
+        /// <summary>
+        /// Compute device class 12.1. with family features.
+        /// </summary>
+        Compute_121F = 0x20000 + Compute_121,
         // Indicates that compute device class supports accelerated features.
         // #define CU_COMPUTE_ACCELERATED_TARGET_BASE   0x10000
+        // Indicates that compute device class supports family features.
+        // #define CU_COMPUTE_FAMILY_TARGET_BASE        0x20000
     }
 
     /// <summary>
@@ -1924,6 +2003,13 @@ namespace ManagedCuda.BasicTypes
         /// driver loaded will result in CUDA API returning this error.
         /// </summary>
         ErrorStubLibrary = 34,
+
+        /// <summary>
+        /// This indicates that the API call requires a newer CUDA driver than the one
+        /// currently installed. Users should install an updated NVIDIA CUDA driver
+        /// to allow the API call to succeed.
+        /// </summary>
+        ErrorCallRequiresNewerDriver = 36,
 
         /// <summary>
         /// This indicates that requested CUDA device is unavailable at the current
@@ -2509,7 +2595,11 @@ namespace ManagedCuda.BasicTypes
         /// <summary>
         /// Accessing CUDA arrays over the link supported
         /// </summary>
-        CudaArrayAccessAccessSupported = 0x04
+        CudaArrayAccessAccessSupported = 0x04,
+        /// <summary>
+        /// Only some CUDA-valid atomic operations over the link are supported.
+        /// </summary>
+        OnlyPartialNativeAtomicSupported = 0x05
 
     }
 
@@ -3055,9 +3145,81 @@ namespace ManagedCuda.BasicTypes
         /// complex as a pair of unsigned 64-bit int numbers
         /// </summary>
         CUDA_C_64U = 27
-
-
     }
+
+    /// <summary>
+    /// Enum for specifying how to leverage floating-point emulation algorithms
+    /// </summary>
+    public enum cudaEmulationStrategy
+    {
+        /// <summary>
+        /// The default emulation strategy.  For emulated computations, this is
+        /// equivalent to CUDA_EMULATION_STRATEGY_PERFORMANT, unless a library
+        /// dependent environment variable is set
+        /// </summary>
+        Default = 0,
+
+        /// <summary>
+        /// An emulation strategy which configures libraries to use emulation
+        /// when it provides a performance benefit
+        /// </summary>
+        Performant = 1,
+
+        /// <summary>
+        /// An emulation strategy which configures libraries to use emulation
+        /// whenever possible
+        /// </summary>
+        Eager = 2,
+    }
+
+    /// <summary>
+    /// Enum to configure the mantissa related parameters for floating-point
+    /// emulation algorithms
+    /// </summary>
+    public enum cudaEmulationMantissaControl
+    {
+        /// <summary>
+        /// The number of retained mantissa bits are computed at runtime to
+        /// ensure the same or better accuracy than the floating point
+        /// representation being emulated
+        /// </summary>
+        Dynamic = 0,
+
+        /// <summary>
+        /// The number of retained mantissa bits are known at runtime
+        /// </summary>
+        Fixed = 1,
+    }
+
+    /// <summary>
+    /// Enum to configure how special floating-point values will be handled by
+    /// emulation algorithms
+    /// </summary>
+    [Flags]
+    public enum cudaEmulationSpecialValuesSupport
+    {
+        /// <summary>
+        /// The default special value support mask which contains support for
+        /// signed infinities and NaN values
+        /// </summary>
+        Default = 0xFFFF,
+
+        /// <summary>
+        /// There are no requirements for emulation algorithms to support special values
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Require emulation algorithms to handle signed infinity inputs and outputs
+        /// </summary>
+        Infinity = 1,
+
+        /// <summary>
+        /// Require emulation algorithms to handle NaN inputs and outputs
+        /// </summary>
+        NaN = 2,
+    }
+
 
 
     /// <summary/>
@@ -3215,7 +3377,7 @@ namespace ManagedCuda.BasicTypes
         /// </summary>
         MemFree = 11,
         /// <summary>
-        /// Batch MemOp Node
+        /// Batch MemOp Node, See ::cuStreamBatchMemOp and ::CUstreamBatchMemOpType for what these nodes can do.
         /// </summary>
         BatchMemOp = 12,
         /// <summary>
@@ -3312,7 +3474,11 @@ namespace ManagedCuda.BasicTypes
         /// <summary>
         /// Handle is an NvSciBuf object
         /// </summary>
-        NvSciBuf = 8
+        NvSciBuf = 8,
+        /// <summary>
+        /// Handle is a dma_buf file descriptor
+        /// </summary>
+        DMABufFD = 9
     }
 
 
@@ -3375,6 +3541,10 @@ namespace ManagedCuda.BasicTypes
         /// </summary>
         Invalid = 0x0,
         /// <summary>
+        /// Location is unspecified. This is used when creating a managed memory pool to indicate no preferred location for the pool
+        /// </summary>
+        None = 0x0,
+        /// <summary>
         /// Location is a device location, thus id is a device ordinal
         /// </summary>
         Device = 0x1,
@@ -3406,7 +3576,11 @@ namespace ManagedCuda.BasicTypes
         /// This allocation type is 'pinned', i.e. cannot migrate from its current
         /// location while the application is actively using it
         /// </summary>
-        Pinned = 0x1
+        Pinned = 0x1,
+        /// <summary>
+        /// This allocation type is managed memory
+        /// </summary>
+        Managed = 0x2,
     }
 
     /// <summary>
@@ -4159,7 +4333,20 @@ namespace ManagedCuda.BasicTypes
         /// This is only a hint, and the CUDA driver can choose a different configuration if
         /// required for the launch.
         /// </summary>
-        PreferredSharedMemoryCarveout = 14
+        PreferredSharedMemoryCarveout = 14,
+        /// <summary>
+        /// Valid for streams, graph nodes, launches. This attribute is a hint to the CUDA runtime that the 
+        /// launch should attempt to make the kernel maximize its NVLINK utilization.  <para/>
+        /// When possible to honor this hint, CUDA will assume each block in the grid launch will carry out an even amount
+        /// of NVLINK traffic, and make a best-effort attempt to adjust the kernel launch based on that assumption.<para/>
+        /// This attribute is a hint only. CUDA makes no functional or performance guarantee. Its applicability can be
+        /// affected by many different factors, including driver version (i.e. CUDA doesn't guarantee the performance 
+        /// characteristics will be maintained between driver versions or a driver update could alter or regress
+        /// previously observed perf characteristics.) It also doesn't guarantee a successful result, i.e. applying 
+        /// the attribute may not improve the performance of either the targeted kernel or the encapsulating application.<para/>
+        /// Valid values for ::CUlaunchAttributeValue::nvlinkUtilCentricScheduling are 0 (disabled) and 1 (enabled).
+        /// </summary>
+        NVLinkUtilCentricScheduling = 16
     }
 
 
@@ -4376,7 +4563,11 @@ namespace ManagedCuda.BasicTypes
         /// <summary>
         /// D3D12 Command Queue Handle
         /// </summary>
-        D3D12CommandQueue = 0x1
+        D3D12CommandQueue = 0x1,
+        /// <summary>
+        /// Nvidia specific data blob used for Vulkan and other NV clients
+        /// </summary>
+        NvBlob = 0x2
 
     }
 
@@ -4450,6 +4641,69 @@ namespace ManagedCuda.BasicTypes
         Array = 0x2
     }
 
+
+    /// <summary>
+    /// CUDA-valid Atomic Operations
+    /// </summary>
+    public enum CUatomicOperation
+    {
+        IntegerAdd = 0,
+        IntegerMin = 1,
+        IntegerMax = 2,
+        IntegerIncrement = 3,
+        IntegerDecrement = 4,
+        And = 5,
+        Or = 6,
+        Xor = 7,
+        Exchange = 8,
+        CAS = 9,
+        FloatAdd = 10,
+        FloatMin = 11,
+        FloatMax = 12,
+        MAX
+    }
+
+    /// <summary>
+    /// CUDA-valid Atomic Operation capabilities
+    /// </summary>
+    [Flags]
+    public enum CUatomicOperationCapability
+    {
+        None = 0,
+        Signed = 1 << 0,
+        Unsigned = 1 << 1,
+        Reduction = 1 << 2,
+        Scalar32 = 1 << 3,
+        Scalar64 = 1 << 4,
+        Scalar128 = 1 << 5,
+        Vector32x4 = 1 << 6
+    }
+
+    /// <summary>
+    /// Child graph node ownership
+    /// </summary>
+    public enum CUgraphChildGraphNodeOwnership
+    {
+        /// <summary>
+        /// Default behavior for a child graph node. Child graph is cloned
+        /// into the parent and memory allocation/free nodes can't be present
+        /// in the child graph.
+        /// </summary>
+        Clone = 0,
+        /// <summary>
+        /// The child graph is moved to the parent. The handle to the child graph
+        /// is owned by the parent and will be destroyed when the parent is
+        /// destroyed.<para/>
+        /// The following restrictions apply to child graphs after they have been moved:<para/>
+        /// Cannot be independently instantiated or destroyed;<para/>
+        /// Cannot be added as a child graph of a separate parent graph;<para/>
+        /// Cannot be used as an argument to cuGraphExecUpdate;<para/>
+        /// Cannot have additional memory allocation or free nodes added.
+        /// </summary>
+        Move = 1
+    }
+
+
     /// <summary>
     /// Bitmasks for CU_DEVICE_ATTRIBUTE_MEM_DECOMPRESS_ALGORITHM_MASK.
     /// </summary>
@@ -4467,7 +4721,24 @@ namespace ManagedCuda.BasicTypes
         /// <summary>
         /// Snappy is supported.
         /// </summary>
-        Snappy = 1 << 1
+        Snappy = 1 << 1,
+        /// <summary>
+        /// LZ4.
+        /// </summary>
+        LZ4 = 1 << 2
+    }
+
+    /// <summary>
+    /// CUlogLevel
+    /// </summary>
+    public enum CUlogLevel
+    {
+        /// <summary>
+        /// </summary>
+        Error = 0,
+        /// <summary>
+        /// </summary>
+        Warning = 1
     }
     #endregion
 }

@@ -38,7 +38,7 @@ namespace ManagedCuda.CudaSolve
     /// <summary/>
     public static class CudaSolveNativeMethods
     {
-        internal const string CUSOLVE_API_DLL_NAME = "cusolver64_11.dll";
+        internal const string CUSOLVE_API_DLL_NAME = "cusolver64_12.dll";
 
 #if (NETCOREAPP)
         internal const string CUSOLVE_API_DLL_NAME_LINUX = "cusolver";
@@ -126,6 +126,17 @@ namespace ManagedCuda.CudaSolve
             public static extern cusolverStatus cusolverDnSetDeterministicMode(cusolverDnHandle handle, cusolverDeterministicMode mode);
             [DllImport(CUSOLVE_API_DLL_NAME)]
             public static extern cusolverStatus cusolverDnGetDeterministicMode(cusolverDnHandle handle, ref cusolverDeterministicMode mode);
+
+            [DllImport(CUSOLVE_API_DLL_NAME)]
+            public static extern cusolverStatus cusolverDnSetMathMode(cusolverDnHandle handle, cusolverMathMode mode);
+            [DllImport(CUSOLVE_API_DLL_NAME)]
+            public static extern cusolverStatus cusolverDnGetMathMode(cusolverDnHandle handle, ref cusolverMathMode mode);
+
+            [DllImport(CUSOLVE_API_DLL_NAME)]
+            public static extern cusolverStatus cusolverDnSetEmulationStrategy(cusolverDnHandle handle, cudaEmulationStrategy strategy);
+
+            [DllImport(CUSOLVE_API_DLL_NAME)]
+            public static extern cusolverStatus cusolverDnGetEmulationStrategy(cusolverDnHandle handle, ref cudaEmulationStrategy strategy);
             #endregion
 
             #region Cholesky factorization and its solver
@@ -5628,232 +5639,11 @@ namespace ManagedCuda.CudaSolve
                 cusolverDnFunction function,
                 cusolverAlgMode algo);
 
-
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnPotrf_bufferSize(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                FillMode uplo,
-                long n,
-                cudaDataType dataTypeA,
-
-                CUdeviceptr A,
-                long lda,
-                cudaDataType computeType,
-                ref SizeT workspaceInBytes);
-
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnPotrf(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                FillMode uplo,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                cudaDataType computeType,
-                CUdeviceptr pBuffer,
-                SizeT workspaceInBytes,
-                CUdeviceptr info);
-
             #endregion
 
-            #region 64-bit API for POTRS 
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnPotrs(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                FillMode uplo,
-                long n,
-                long nrhs,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                cudaDataType dataTypeB,
-
-                CUdeviceptr B,
-                long ldb,
-                CUdeviceptr info);
-
-            #endregion
-
-            #region 64-bit API for GEQRF 
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnGeqrf_bufferSize(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                long m,
-                long n,
-                cudaDataType dataTypeA,
-
-                CUdeviceptr A,
-                long lda,
-                cudaDataType dataTypeTau,
-
-                CUdeviceptr tau,
-                cudaDataType computeType,
-                ref SizeT workspaceInBytes);
-
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnGeqrf(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                long m,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                cudaDataType dataTypeTau,
-                CUdeviceptr tau,
-                cudaDataType computeType,
-                CUdeviceptr pBuffer,
-                SizeT workspaceInBytes,
-                CUdeviceptr info);
-
-            #endregion
-
-            #region 64-bit API for GETRF
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnGetrf_bufferSize(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                long m,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                cudaDataType computeType,
-                ref SizeT workspaceInBytes);
-
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnGetrf(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                long m,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                CUdeviceptr ipiv,
-                cudaDataType computeType,
-                CUdeviceptr pBuffer,
-                SizeT workspaceInBytes,
-                CUdeviceptr info);
-
-            #endregion
-
-            #region 64-bit API for GETRS
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnGetrs(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                Operation trans,
-                long n,
-                long nrhs,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                CUdeviceptr ipiv,
-                cudaDataType dataTypeB,
-                CUdeviceptr B,
-                long ldb,
-                CUdeviceptr info);
-
-            #endregion
-
-            #region 64-bit API for SYEVD
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnSyevd_bufferSize(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                cusolverEigMode jobz,
-                FillMode uplo,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                cudaDataType dataTypeW,
-                CUdeviceptr W,
-                cudaDataType computeType,
-                ref SizeT workspaceInBytes);
-
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnSyevd(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                cusolverEigMode jobz,
-                FillMode uplo,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                cudaDataType dataTypeW,
-                CUdeviceptr W,
-                cudaDataType computeType,
-                CUdeviceptr pBuffer,
-                SizeT workspaceInBytes,
-                CUdeviceptr info);
-
-            #endregion
-
-            #region 64-bit API for SYEVDX 
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnSyevdx_bufferSize(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                cusolverEigMode jobz,
-                cusolverEigRange range,
-                FillMode uplo,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                IntPtr vl,
-                IntPtr vu,
-                long il,
-                long iu,
-                ref long h_meig,
-                cudaDataType dataTypeW,
-                CUdeviceptr W,
-                cudaDataType computeType,
-                ref SizeT workspaceInBytes);
 
 
-            [DllImport(CUSOLVE_API_DLL_NAME)]
-            [Obsolete("Deprecated in Cuda version 11.1")]
-            public static extern cusolverStatus cusolverDnSyevdx(
-                cusolverDnHandle handle,
-                cusolverDnParams parameters,
-                cusolverEigMode jobz,
-                cusolverEigRange range,
-                FillMode uplo,
-                long n,
-                cudaDataType dataTypeA,
-                CUdeviceptr A,
-                long lda,
-                IntPtr vl,
-                IntPtr vu,
-                long il,
-                long iu,
-                ref long meig64,
-                cudaDataType dataTypeW,
-                CUdeviceptr W,
-                cudaDataType computeType,
-                CUdeviceptr pBuffer,
-                SizeT workspaceInBytes,
-                CUdeviceptr info);
-            #endregion
+
 
             #region new 64-bit API
             #region 64-bit API for POTRF
@@ -6365,6 +6155,7 @@ namespace ManagedCuda.CudaSolve
         /// The cuSolverSP library was mainly designed to a solve sparse linear system AxB and the least-squares problem
         /// x = argmin||A*z-b||
         /// </summary>
+        [Obsolete("Deprecated in Cuda version 13")]
         public static class Sparse
         {
 #if (NETCOREAPP)
@@ -7285,258 +7076,6 @@ namespace ManagedCuda.CudaSolve
 
             #endregion
 
-            #region Low-level API: Batched QR
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpCreateCsrqrInfo(ref csrqrInfo info);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpDestroyCsrqrInfo(csrqrInfo info);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnzA">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrRowPtrA">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColIndA">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpXcsrqrAnalysisBatched(cusolverSpHandle handle, int m, int n, int nnzA, cusparseMatDescr descrA, CUdeviceptr csrRowPtrA, CUdeviceptr csrColIndA, csrqrInfo info);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrVal">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtr">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColInd">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="internalDataInBytes">number of bytes of the internal data.</param>
-            ///// <param name="workspaceInBytes">number of bytes of the buffer in numerical factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpScsrqrBufferInfoBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrVal, CUdeviceptr csrRowPtr, CUdeviceptr csrColInd, int batchSize, csrqrInfo info, ref SizeT internalDataInBytes, ref SizeT workspaceInBytes);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrVal">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtr">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColInd">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="internalDataInBytes">number of bytes of the internal data.</param>
-            ///// <param name="workspaceInBytes">number of bytes of the buffer in numerical factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpDcsrqrBufferInfoBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrVal, CUdeviceptr csrRowPtr, CUdeviceptr csrColInd, int batchSize, csrqrInfo info, ref SizeT internalDataInBytes, ref SizeT workspaceInBytes);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrVal">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtr">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColInd">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="internalDataInBytes">number of bytes of the internal data.</param>
-            ///// <param name="workspaceInBytes">number of bytes of the buffer in numerical factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpCcsrqrBufferInfoBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrVal, CUdeviceptr csrRowPtr, CUdeviceptr csrColInd, int batchSize, csrqrInfo info, ref SizeT internalDataInBytes, ref SizeT workspaceInBytes);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrVal">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtr">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColInd">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="internalDataInBytes">number of bytes of the internal data.</param>
-            ///// <param name="workspaceInBytes">number of bytes of the buffer in numerical factorization.</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpZcsrqrBufferInfoBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrVal, CUdeviceptr csrRowPtr, CUdeviceptr csrColInd, int batchSize, csrqrInfo info, ref SizeT internalDataInBytes, ref SizeT workspaceInBytes);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrValA">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtrA">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColIndA">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="b">array of m*batchSize of right-hand-side vectors b0, b1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="x">array of m*batchSize of solution vectors x0, x1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="pBuffer">buffer allocated by the user, the size is returned
-            ///// by cusolverSpXcsrqrBufferInfoBatched().</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpScsrqrsvBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrValA, CUdeviceptr csrRowPtrA, CUdeviceptr csrColIndA, CUdeviceptr b, CUdeviceptr x, int batchSize, csrqrInfo info, CUdeviceptr pBuffer);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrValA">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtrA">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColIndA">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="b">array of m*batchSize of right-hand-side vectors b0, b1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="x">array of m*batchSize of solution vectors x0, x1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="pBuffer">buffer allocated by the user, the size is returned
-            ///// by cusolverSpXcsrqrBufferInfoBatched().</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpDcsrqrsvBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrValA, CUdeviceptr csrRowPtrA, CUdeviceptr csrColIndA, CUdeviceptr b, CUdeviceptr x, int batchSize, csrqrInfo info, CUdeviceptr pBuffer);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrValA">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtrA">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColIndA">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="b">array of m*batchSize of right-hand-side vectors b0, b1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="x">array of m*batchSize of solution vectors x0, x1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="pBuffer">buffer allocated by the user, the size is returned
-            ///// by cusolverSpXcsrqrBufferInfoBatched().</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpCcsrqrsvBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrValA, CUdeviceptr csrRowPtrA, CUdeviceptr csrColIndA, CUdeviceptr b, CUdeviceptr x, int batchSize, csrqrInfo info, CUdeviceptr pBuffer);
-
-            ///// <summary>
-            ///// The batched sparse QR factorization is used to solve either a set of least-squares
-            ///// problems or a set of linear systems
-            ///// </summary>
-            ///// <param name="handle">handle to the cuSolverSP library context.</param>
-            ///// <param name="m">number of rows of each matrix Aj.</param>
-            ///// <param name="n">number of columns of each matrix Aj.</param>
-            ///// <param name="nnz">number of nonzeros of each matrix Aj. It is the size csrColIndA.</param>
-            ///// <param name="descrA">the descriptor of matrix A. The supported matrix type is
-            ///// CUSPARSE_MATRIXYPE_GENERAL. Also, the supported index bases are CUSPARSE_INDEX_BASE_ZERO and CUSPARSE_INDEX_BASE_ONE.</param>
-            ///// <param name="csrValA">array of nnzA*batchSize nonzero 
-            ///// elements of matrices A0, A1, .... All matrices are aggregated one after another.</param>
-            ///// <param name="csrRowPtrA">integer array of m+1 elements that contains the
-            ///// start of every row and the end of the last row plus one.</param>
-            ///// <param name="csrColIndA">integer array of nnzAcolumn indices of the nonzero elements of each matrix Aj.</param>
-            ///// <param name="b">array of m*batchSize of right-hand-side vectors b0, b1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="x">array of m*batchSize of solution vectors x0, x1, .... All vectors are aggregated one after another.</param>
-            ///// <param name="batchSize">number of systems to be solved.</param>
-            ///// <param name="info">opaque structure for QR factorization.</param>
-            ///// <param name="pBuffer">buffer allocated by the user, the size is returned
-            ///// by cusolverSpXcsrqrBufferInfoBatched().</param>
-            //[DllImport(CUSOLVE_API_DLL_NAME)]
-            //public static extern cusolverStatus cusolverSpZcsrqrsvBatched(cusolverSpHandle handle, int m, int n, int nnz, cusparseMatDescr descrA, CUdeviceptr csrValA, CUdeviceptr csrRowPtrA, CUdeviceptr csrColIndA, CUdeviceptr b, CUdeviceptr x, int batchSize, csrqrInfo info, CUdeviceptr pBuffer);
-
-
-
-
-
-
-            // /*
-            // * "diag" is a device array of size N.
-            // * cusolverSp<t>csrcholDiag returns diag(L) to "diag" where A(P,P) = L*L**T
-            // * "diag" can estimate det(A) because det(A(P,P)) = det(A) = det(L)^2 if A = L*L**T.
-            // * 
-            // * cusolverSp<t>csrcholDiag must be called after cusolverSp<t>csrcholFactor.
-            // * otherwise "diag" is wrong.
-            // */
-            //cusolverStatus cusolverSpScsrcholDiag(
-            //	cusolverSpHandle handle,
-            //	csrcholInfo info,
-            //	CUdeviceptr diag);
-
-            //cusolverStatus cusolverSpDcsrcholDiag(
-            //	cusolverSpHandle handle,
-            //	csrcholInfo info,
-            //	CUdeviceptr diag);
-
-            //cusolverStatus cusolverSpCcsrcholDiag(
-            //	cusolverSpHandle handle,
-            //	csrcholInfo info,
-            //	CUdeviceptr diag);
-
-            //cusolverStatus cusolverSpZcsrcholDiag(
-            //	cusolverSpHandle handle,
-            //	csrcholInfo info,
-            //	CUdeviceptr diag);
-            #endregion
-
         }
 
         /// <summary>
@@ -7544,6 +7083,7 @@ namespace ManagedCuda.CudaSolve
         /// fast re-factorization when given new coefficients in the same sparsity pattern
         /// A_i x_i = f_i
         /// </summary>
+        [Obsolete("Deprecated in Cuda version 13")]
         public static class Refactorization
         {
 #if (NETCOREAPP)

@@ -26,6 +26,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace ManagedCuda.BasicTypes
@@ -223,8 +224,8 @@ namespace ManagedCuda.BasicTypes
             get
             {
                 CUuuid uuid = new CUuuid();
-                CUResult res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetUuid_v2(ref uuid, this);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetUuid_v2", res));
+                CUResult res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetUuid(ref uuid, this);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetUuid", res));
                 if (res != CUResult.Success) throw new CudaException(res);
                 return uuid;
             }
@@ -361,6 +362,40 @@ namespace ManagedCuda.BasicTypes
             if (res != CUResult.Success) throw new CudaException(res);
             return value;
         }
+
+        /// <summary>
+        /// Queries details about atomic operations supported between the device and host.
+        /// 
+        /// Returns in \p* capabilities the details about requested atomic \p* operations over the 
+        /// the link between \p dev and the host.The allocated size of \p* operations and
+        /// \p* capabilities must be \p count.
+        /// 
+        /// For each ::CUatomicOperation in \p* operations, the corresponding result in \p* capabilities
+        /// will be a bitmask indicating which of::CUatomicOperationCapability the link supports natively.
+        /// 
+        /// Returns ::CUDA_ERROR_INVALID_DEVICE if \p dev is not valid.
+        /// 
+        /// Returns::CUDA_ERROR_INVALID_VALUE if \p* capabilities or \p* operations is NULL, if \p count is 0,
+        /// or if any of \p* operations is not valid.
+        /// </summary>
+        /// <param name="operations">Requested operations</param>
+        /// <returns></returns>
+        /// <exception cref="CudaException"></exception>
+        public CUatomicOperationCapability[] GetHostAtomicCapabilities(CUatomicOperation[] operations)
+        {
+            if (operations.Length == 0)
+            {
+                return null;
+            }
+            uint size = (uint)operations.Length;
+            CUatomicOperationCapability[] capabilities = new CUatomicOperationCapability[size];
+
+            CUResult res = DriverAPINativeMethods.DeviceManagement.cuDeviceGetHostAtomicCapabilities(capabilities, operations, size, this);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuDeviceGetHostAtomicCapabilities", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+            return capabilities;
+        }
+
     }
 
     /// <summary>
@@ -1802,35 +1837,11 @@ namespace ManagedCuda.BasicTypes
         /// Returns a node's dependencies.
         /// </summary>
         /// <returns></returns>
-        public CUgraphNode[] GetDependencies()
-        {
-            SizeT numNodes = new SizeT();
-            CUResult res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependencies(this, null, ref numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependencies", res));
-            if (res != CUResult.Success) throw new CudaException(res);
-
-            if (numNodes > 0)
-            {
-                CUgraphNode[] nodes = new CUgraphNode[numNodes];
-                res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependencies(this, nodes, ref numNodes);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependencies", res));
-                if (res != CUResult.Success) throw new CudaException(res);
-
-                return nodes;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns a node's dependencies.
-        /// </summary>
-        /// <returns></returns>
         public void GetDependencies(out CUgraphNode[] dependencies, out CUgraphEdgeData[] edgeData)
         {
             SizeT numNodes = new SizeT();
-            CUResult res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependencies_v2(this, null, null, ref numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependencies_v2", res));
+            CUResult res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependencies(this, null, null, ref numNodes);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependencies", res));
             if (res != CUResult.Success) throw new CudaException(res);
 
             dependencies = null;
@@ -1839,8 +1850,8 @@ namespace ManagedCuda.BasicTypes
             {
                 dependencies = new CUgraphNode[numNodes];
                 edgeData = new CUgraphEdgeData[numNodes];
-                res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependencies_v2(this, dependencies, edgeData, ref numNodes);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependencies_v2", res));
+                res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependencies(this, dependencies, edgeData, ref numNodes);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependencies", res));
                 if (res != CUResult.Success) throw new CudaException(res);
 
                 return;
@@ -1850,35 +1861,12 @@ namespace ManagedCuda.BasicTypes
         /// <summary>
         /// Returns a node's dependent nodes
         /// </summary>
-        public CUgraphNode[] GetDependentNodes()
-        {
-            SizeT numNodes = new SizeT();
-            CUResult res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependentNodes(this, null, ref numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependentNodes", res));
-            if (res != CUResult.Success) throw new CudaException(res);
-
-            if (numNodes > 0)
-            {
-                CUgraphNode[] nodes = new CUgraphNode[numNodes];
-                res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependentNodes(this, nodes, ref numNodes);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependentNodes", res));
-                if (res != CUResult.Success) throw new CudaException(res);
-
-                return nodes;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns a node's dependent nodes
-        /// </summary>
         /// <returns></returns>
         public void GetDependentNodes(out CUgraphNode[] dependentNodes, out CUgraphEdgeData[] edgeData)
         {
             SizeT numNodes = new SizeT();
-            CUResult res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependentNodes_v2(this, null, null, ref numNodes);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependentNodes_v2", res));
+            CUResult res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependentNodes(this, null, null, ref numNodes);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependentNodes", res));
             if (res != CUResult.Success) throw new CudaException(res);
 
             dependentNodes = null;
@@ -1887,8 +1875,8 @@ namespace ManagedCuda.BasicTypes
             {
                 dependentNodes = new CUgraphNode[numNodes];
                 edgeData = new CUgraphEdgeData[numNodes];
-                res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependentNodes_v2(this, dependentNodes, edgeData, ref numNodes);
-                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependentNodes_v2", res));
+                res = DriverAPINativeMethods.GraphManagment.cuGraphNodeGetDependentNodes(this, dependentNodes, edgeData, ref numNodes);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGraphNodeGetDependentNodes", res));
                 if (res != CUResult.Success) throw new CudaException(res);
 
                 return;
@@ -2636,6 +2624,30 @@ namespace ManagedCuda.BasicTypes
             if (res != CUResult.Success) throw new CudaException(res);
             this = temp;
         }
+    }
+
+    /// <summary>
+    /// Cuda context
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CUlogsCallbackHandle
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public IntPtr Pointer;
+    }
+
+    /// <summary>
+    /// Cuda context
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CUlogIterator
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public uint Pointer;
     }
 
     #endregion

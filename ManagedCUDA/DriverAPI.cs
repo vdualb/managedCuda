@@ -26,12 +26,25 @@
 
 using ManagedCuda.BasicTypes;
 using ManagedCuda.VectorTypes;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Net;
+using System.Numerics;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using static System.Net.WebRequestMethods;
 
 namespace ManagedCuda
 {
@@ -171,16 +184,6 @@ namespace ManagedCuda
             public static extern CUResult cuDeviceGetName([Out] byte[] name, int len, CUdevice dev);
 
             /// <summary>
-            /// Return an UUID for the device<para/>
-            /// Returns 16-octets identifing the device \p dev in the structure pointed by the \p uuid.
-            /// </summary>
-            /// <param name="uuid">Returned UUID</param>
-            /// <param name="dev">Device to get identifier string for</param>
-            /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuDeviceGetUuid(ref CUuuid uuid, CUdevice dev);
-
-            /// <summary>
             /// Return an UUID for the device (11.4+)<para/>
             /// Returns 16-octets identifing the device \p dev in the structure
             /// pointed by the \p uuid.If the device is in MIG mode, returns its
@@ -190,8 +193,8 @@ namespace ManagedCuda
             /// <param name="uuid">Returned UUID</param>
             /// <param name="dev">Device to get identifier string for</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuDeviceGetUuid_v2(ref CUuuid uuid, CUdevice dev);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDeviceGetUuid_v2")]
+            public static extern CUResult cuDeviceGetUuid(ref CUuuid uuid, CUdevice dev);
 
             /// <summary>
             /// Return an LUID and device node mask for the device. <para/>
@@ -241,6 +244,30 @@ namespace ManagedCuda
             /// <remarks>Note that this function may also return error codes from previous, asynchronous launches.</remarks></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuDeviceGetAttribute(ref int pi, CUDeviceAttribute attrib, CUdevice dev);
+
+            /// <summary>
+            /// Queries details about atomic operations supported between the device and host.
+            /// 
+            /// Returns in \p* capabilities the details about requested atomic \p* operations over the 
+            /// the link between \p dev and the host.The allocated size of \p* operations and
+            /// \p* capabilities must be \p count.
+            /// 
+            /// For each ::CUatomicOperation in \p* operations, the corresponding result in \p* capabilities
+            /// will be a bitmask indicating which of::CUatomicOperationCapability the link supports natively.
+            /// 
+            /// Returns ::CUDA_ERROR_INVALID_DEVICE if \p dev is not valid.
+            /// 
+            /// Returns::CUDA_ERROR_INVALID_VALUE if \p* capabilities or \p* operations is NULL, if \p count is 0,
+            /// or if any of \p* operations is not valid.
+            /// </summary>
+            /// <param name="capabilities">Returned capability details of each requested operation</param>
+            /// <param name="operations">Requested operations</param>
+            /// <param name="count">Count of requested operations and size of capabilities</param>
+            /// <param name="dev">Device handle</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuDeviceGetHostAtomicCapabilities(CUatomicOperationCapability[] capabilities, CUatomicOperation[] operations, uint count, CUdevice dev);
+
 
             /// <summary>
             /// Return NvSciSync attributes that this device can support.<para/>
@@ -479,49 +506,6 @@ namespace ManagedCuda
                 DriverAPINativeMethods.Init();
             }
 #endif
-            /// <summary>
-            /// Creates a new CUDA context and associates it with the calling thread. The <c>flags</c> parameter is described in <see cref="CUCtxFlags"/>. The
-			/// context is created with a usage count of 1 and the caller of <see cref="cuCtxCreate_v2"/> must call <see cref="cuCtxDestroy_v2"/> or <see cref="cuCtxDetach"/>
-            /// when done using the context. If a context is already current to the thread, it is supplanted by the newly created context
-            /// and may be restored by a subsequent call to <see cref="cuCtxPopCurrent_v2"/>.
-            /// </summary>
-            /// <param name="pctx">Returned context handle of the new context</param>
-            /// <param name="flags">Context creation flags. See <see cref="CUCtxFlags"/></param>
-            /// <param name="dev">Device to create context on</param>
-            /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
-            /// <see cref="CUResult.ErrorInvalidContext"/>, <see cref="CUResult.ErrorInvalidValue"/>, <see cref="CUResult.ErrorInvalidDevice"/>, <see cref="CUResult.ErrorOutOfMemory"/>, <see cref="CUResult.ErrorUnknown"/>.
-            /// <remarks>Note that this function may also return error codes from previous, asynchronous launches.</remarks></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuCtxCreate_v2(ref CUcontext pctx, CUCtxFlags flags, CUdevice dev);
-
-            /// <summary>
-            /// Create a CUDA context with execution affinity<para/>
-            /// Creates a new CUDA context with execution affinity and associates it with
-            /// the calling thread.The \p paramsArray and \p flags parameter are described below.
-            /// The context is created with a usage count of 1 and the caller of ::cuCtxCreate() must
-            /// call::cuCtxDestroy() or when done using the context.If a context is already
-            /// current to the thread, it is supplanted by the newly created context and may
-            /// be restored by a subsequent call to ::cuCtxPopCurrent().<para/>
-            /// The type and the amount of execution resource the context can use is limited by \p paramsArray
-            /// and \p numParams.The \p paramsArray is an array of \p CUexecAffinityParam and the \p numParams
-            /// describes the size of the array. If two \p CUexecAffinityParam in the array have the same type,
-            /// the latter execution affinity parameter overrides the former execution affinity parameter.
-            /// <para/>
-            /// The supported execution affinity types are:
-            /// ::CU_EXEC_AFFINITY_TYPE_SM_COUNT limits the portion of SMs that the context can use.The portion
-            /// of SMs is specified as the number of SMs via \p CUexecAffinitySmCount. This limit will be internally
-            /// rounded up to the next hardware-supported amount. Hence, it is imperative to query the actual execution
-            /// affinity of the context via \p cuCtxGetExecAffinity after context creation.Currently, this attribute
-            /// is only supported under Volta+ MPS.
-            /// </summary>
-            /// <param name="pctx">Returned context handle of the new context</param>
-            /// <param name="paramsArray"></param>
-            /// <param name="numParams"></param>
-            /// <param name="flags">Context creation flags. See <see cref="CUCtxFlags"/></param>
-            /// <param name="dev">Device to create context on</param>
-            /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuCtxCreate_v3(ref CUcontext pctx, CUexecAffinityParam[] paramsArray, int numParams, CUCtxFlags flags, CUdevice dev);
 
             /// <summary>
             /// Create a CUDA context<para/>
@@ -651,8 +635,8 @@ namespace ManagedCuda
             /// <param name="flags">Context creation flags</param>
             /// <param name="dev">Device to create context on</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuCtxCreate_v4(ref CUcontext pctx, ref CUctxCreateParams ctxCreateParams, CUCtxFlags flags, CUdevice dev);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuCtxCreate_v4")]
+            public static extern CUResult cuCtxCreate(ref CUcontext pctx, ref CUctxCreateParams ctxCreateParams, CUCtxFlags flags, CUdevice dev);
 
 
             /// <summary>
@@ -768,6 +752,14 @@ namespace ManagedCuda
             public static extern CUResult cuCtxGetDevice(ref CUdevice device);
 
             /// <summary>
+            /// Returns in \p *device the handle of the specified context's device. If the specified context is NULL, the API will
+            /// return the current context's device.
+            /// </summary>
+            /// <param name="device">Returned device handle for the specified context</param>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuCtxGetDevice_v2")]
+            public static extern CUResult cuCtxGetDevice(ref CUdevice device, CUcontext ctx);
+
+            /// <summary>
             /// Blocks until the current context has completed all preceding requested tasks.
             /// If the current context is the primary context, green contexts that have been created will also be synchronized.
             /// <see cref="cuCtxSynchronize"/> returns an error if one of the
@@ -779,6 +771,22 @@ namespace ManagedCuda
             /// <remarks>Note that this function may also return error codes from previous, asynchronous launches.</remarks></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuCtxSynchronize();
+
+            /// <summary>
+            /// Block for the specified context's tasks to complete.<para/>
+            /// Blocks until the specified context has completed all preceding requested tasks.<para/>
+            /// If the specified context is the primary context, green contexts that have been
+            /// created will also be synchronized.<para/>
+            /// The API returns an error if one of the preceding tasks failed.<para/>
+            /// If the context was created with the::CU_CTX_SCHED_BLOCKING_SYNC flag, the
+            /// CPU thread will block until the GPU context has finished its work.<para/>
+            /// If the specified context is NULL, the API will operate on the current context.
+            /// </summary>
+            /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
+            /// <see cref="CUResult.ErrorInvalidContext"/>.
+            /// <remarks>Note that this function may also return error codes from previous, asynchronous launches.</remarks></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuCtxSynchronize_v2")]
+            public static extern CUResult cuCtxSynchronize(CUcontext ctx);
 
             /// <summary>
             /// Returns the API version used to create <c>ctx</c> in <c>version</c>. If <c>ctx</c>
@@ -2060,34 +2068,6 @@ namespace ManagedCuda
 
 
             /// <summary>
-            /// Prefetches memory to the specified destination device<para/>
-            /// Prefetches memory to the specified destination device. devPtr is the 
-            /// base device pointer of the memory to be prefetched and dstDevice is the 
-            /// destination device. count specifies the number of bytes to copy. hStream
-            /// is the stream in which the operation is enqueued.<para/>
-            /// 
-            /// Passing in CU_DEVICE_CPU for dstDevice will prefetch the data to CPU memory.<para/>
-            /// 
-            /// If no physical memory has been allocated for this region, then this memory region
-            /// will be populated and mapped on the destination device. If there's insufficient
-            /// memory to prefetch the desired region, the Unified Memory driver may evict pages
-            /// belonging to other memory regions to make room. If there's no memory that can be
-            /// evicted, then the Unified Memory driver will prefetch less than what was requested.<para/>
-            /// 
-            /// In the normal case, any mappings to the previous location of the migrated pages are
-            /// removed and mappings for the new location are only setup on the dstDevice.
-            /// The application can exercise finer control on these mappings using ::cudaMemAdvise.
-            /// </summary>
-            /// <param name="devPtr">Pointer to be prefetched</param>
-            /// <param name="count">Size in bytes</param>
-            /// <param name="dstDevice">Destination device to prefetch to</param>
-            /// <param name="hStream">Stream to enqueue prefetch operation</param>
-            /// <remarks>Note that this function is asynchronous with respect to the host and all work on other devices.</remarks>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemPrefetchAsync" + CUDA_PTSZ)]
-            public static extern CUResult cuMemPrefetchAsync(CUdeviceptr devPtr, SizeT count, CUdevice dstDevice, CUstream hStream);
-
-
-            /// <summary>
             /// Prefetches memory to the specified destination location
             /// Prefetches memory to the specified destination location.  \p devPtr is the
             /// base device pointer of the memory to be prefetched and \p location specifies the
@@ -2149,72 +2129,7 @@ namespace ManagedCuda
             /// <param name="hStream">Stream to enqueue prefetch operation</param>
             /// <remarks>Note that this function is asynchronous with respect to the host and all work on other devices.</remarks>
             [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemPrefetchAsync_v2" + CUDA_PTSZ)]
-            public static extern CUResult cuMemPrefetchAsync_v2(CUdeviceptr devPtr, SizeT count, CUmemLocation location, uint flags, CUstream hStream);
-
-            /// <summary>
-            /// Advise about the usage of a given memory range<para/>
-            /// Advise the Unified Memory subsystem about the usage pattern for the memory range starting at devPtr with a size of count bytes.<para/>
-            /// <para/>
-            /// The \p advice parameter can take the following values:<para/>
-            /// - ::CU_MEM_ADVISE_SET_READ_MOSTLY: This implies that the data is mostly going to be read
-            /// from and only occasionally written to. This allows the driver to create read-only
-            /// copies of the data in a processor's memory when that processor accesses it. Similarly,
-            /// if cuMemPrefetchAsync is called on this region, it will create a read-only copy of
-            /// the data on the destination processor. When a processor writes to this data, all copies
-            /// of the corresponding page are invalidated except for the one where the write occurred.
-            /// The \p device argument is ignored for this advice.<para/>
-            /// - ::CU_MEM_ADVISE_UNSET_READ_MOSTLY: Undoes the effect of ::CU_MEM_ADVISE_SET_READ_MOSTLY. Any read
-            /// duplicated copies of the data will be freed no later than the next write access to that data.<para/>
-            /// - ::CU_MEM_ADVISE_SET_PREFERRED_LOCATION: This advice sets the preferred location for the
-            /// data to be the memory belonging to \p device. Passing in CU_DEVICE_CPU for \p device sets the
-            /// preferred location as CPU memory. Setting the preferred location does not cause data to
-            /// migrate to that location immediately. Instead, it guides the migration policy when a fault
-            /// occurs on that memory region. If the data is already in its preferred location and the
-            /// faulting processor can establish a mapping without requiring the data to be migrated, then
-            /// the migration will be avoided. On the other hand, if the data is not in its preferred location
-            /// or if a direct mapping cannot be established, then it will be migrated to the processor accessing
-            /// it. It is important to note that setting the preferred location does not prevent data prefetching
-            /// done using ::cuMemPrefetchAsync.<para/>
-            /// Having a preferred location can override the thrash detection and resolution logic in the Unified
-            /// Memory driver. Normally, if a page is detected to be constantly thrashing between CPU and GPU
-            /// memory say, the page will eventually be pinned to CPU memory by the Unified Memory driver. But
-            /// if the preferred location is set as GPU memory, then the page will continue to thrash indefinitely.
-            /// When the Unified Memory driver has to evict pages from a certain location on account of that
-            /// memory being oversubscribed, the preferred location will be used to decide the destination to which
-            /// a page should be evicted to.<para/>
-            /// If ::CU_MEM_ADVISE_SET_READ_MOSTLY is also set on this memory region or any subset of it, the preferred
-            /// location will be ignored for that subset.<para/>
-            /// - ::CU_MEM_ADVISE_UNSET_PREFERRED_LOCATION: Undoes the effect of ::CU_MEM_ADVISE_SET_PREFERRED_LOCATION
-            /// and changes the preferred location to none.<para/>
-            /// - ::CU_MEM_ADVISE_SET_ACCESSED_BY: This advice implies that the data will be accessed by \p device.
-            /// This does not cause data migration and has no impact on the location of the data per se. Instead,
-            /// it causes the data to always be mapped in the specified processor's page tables, as long as the
-            /// location of the data permits a mapping to be established. If the data gets migrated for any reason,
-            /// the mappings are updated accordingly.<para/>
-            /// This advice is useful in scenarios where data locality is not important, but avoiding faults is.
-            /// Consider for example a system containing multiple GPUs with peer-to-peer access enabled, where the
-            /// data located on one GPU is occasionally accessed by other GPUs. In such scenarios, migrating data
-            /// over to the other GPUs is not as important because the accesses are infrequent and the overhead of
-            /// migration may be too high. But preventing faults can still help improve performance, and so having
-            /// a mapping set up in advance is useful. Note that on CPU access of this data, the data may be migrated
-            /// to CPU memory because the CPU typically cannot access GPU memory directly. Any GPU that had the
-            /// ::CU_MEM_ADVISE_SET_ACCESSED_BY flag set for this data will now have its mapping updated to point to the
-            /// page in CPU memory.<para/>
-            /// - ::CU_MEM_ADVISE_UNSET_ACCESSED_BY: Undoes the effect of CU_MEM_ADVISE_SET_ACCESSED_BY. The current set of
-            /// mappings may be removed at any time causing accesses to result in page faults.
-            /// <para/>
-            /// Passing in ::CU_DEVICE_CPU for \p device will set the advice for the CPU.
-            /// <para/>
-            /// Note that this function is asynchronous with respect to the host and all work
-            /// on other devices.
-            /// </summary>
-            /// <param name="devPtr">Pointer to memory to set the advice for</param>
-            /// <param name="count">Size in bytes of the memory range</param>
-            /// <param name="advice">Advice to be applied for the specified memory range</param>
-            /// <param name="device">Device to apply the advice for</param>
-            /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuMemAdvise(CUdeviceptr devPtr, SizeT count, CUmemAdvise advice, CUdevice device);
+            public static extern CUResult cuMemPrefetchAsync(CUdeviceptr devPtr, SizeT count, CUmemLocation location, uint flags, CUstream hStream);
 
             /// <summary>
             /// Advise about the usage of a given memory range<para/>
@@ -2320,8 +2235,132 @@ namespace ManagedCuda
             /// <param name="advice">Advice to be applied for the specified memory range</param>
             /// <param name="location">location to apply the advice for</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuMemAdvise_v2(CUdeviceptr devPtr, SizeT count, CUmemAdvise advice, CUmemLocation location);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemAdvise_v2")]
+            public static extern CUResult cuMemAdvise(CUdeviceptr devPtr, SizeT count, CUmemAdvise advice, CUmemLocation location);
+
+            /// <summary>
+            /// \brief Performs a batch of memory prefetches asynchronously
+            /// 
+            /// Performs a batch of memory prefetches. The batch as a whole executes in stream order
+            /// but operations within a batch are not guaranteed to execute in any specific order.
+            /// All devices in the system must have a non-zero value for the device attribute
+            /// ::CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS otherwise the API will return an error.
+            /// 
+            /// The semantics of the individual prefetch operations are as described in ::cuMemPrefetchAsync.
+            /// 
+            /// Performs memory prefetch on address ranges specified in \p dptrs and \p sizes.
+            /// Both arrays must be of the same length as specified by \p count. Each memory range specified
+            /// must refer to managed memory allocated via ::cuMemAllocManaged or declared via
+            /// __managed__ variables or it may also refer to system-allocated memory when all devices have a non-zero
+            /// value for ::CU_DEVICE_ATTRIBUTE_PAGEABLE_MEMORY_ACCESS. The prefetch location for every operation
+            /// in the batch is specified in the \p prefetchLocs array. Each entry in this array can apply to
+            /// more than one operation. This can be done by specifying in the \p prefetchLocIdxs array, the
+            /// index of the first prefetch operation that the corresponding entry in the \p prefetchLocs array
+            /// applies to. Both \p prefetchLocs and \p prefetchLocIdxs must be of the same length as specified
+            /// by \p numPrefetchLocs. For example, if a batch has 10 prefetches listed in dptrs/sizes, the
+            /// first 4 of which are to be prefetched to one location and the remaining 6 are to be prefetched
+            /// to another, then \p numPrefetchLocs will be 2, \p prefetchLocIdxs will be {0, 4} and \p prefetchLocs
+            /// will contain the two locations. Note the first entry in \p prefetchLocIdxs must always be 0.
+            /// Also, each entry must be greater than the previous entry and the last entry should be less than \p count.
+            /// Furthermore, \p numPrefetchLocs must be lesser than or equal to \p count.
+            /// </summary>
+            /// <param name="dptrs">Array of pointers to be prefetched</param>
+            /// <param name="sizes">Array of sizes for memory prefetch operations.</param>
+            /// <param name="count">Size of \p dptrs and \p sizes arrays.</param>
+            /// <param name="prefetchLocs">Array of locations to prefetch to.</param>
+            /// <param name="prefetchLocIdxs">Array of indices to specify which operands each entry in the \p prefetchLocs array applies to.
+            ///                          The locations specified in prefetchLocs[k] will be applied to copies starting from  prefetchLocIdxs[k]
+            ///                          through  prefetchLocIdxs[k+1] - 1. Also prefetchLocs[numPrefetchLocs - 1] will apply to prefetches starting from
+            ///                          prefetchLocIdxs[numPrefetchLocs - 1] through count - 1.</param>
+            /// <param name="numPrefetchLocs">Size of \p prefetchLocs and \p prefetchLocIdxs arrays.</param>
+            /// <param name="flags">Flags reserved for future use. Must be zero.</param>
+            /// <param name="hStream">The stream to enqueue the operations in. Must not be legacy NULL stream.</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemPrefetchBatchAsync" + CUDA_PTSZ)]
+            public static extern CUResult cuMemPrefetchBatchAsync(CUdeviceptr[] dptrs, SizeT[] sizes, SizeT count,
+                                                     CUmemLocation[] prefetchLocs, SizeT[] prefetchLocIdxs, SizeT numPrefetchLocs,
+                                                     ulong flags, CUstream hStream);
+
+            /// <summary>
+            /// \brief Performs a batch of memory discards asynchronously
+            /// 
+            /// Performs a batch of memory discards.The batch as a whole executes in stream order
+            /// but operations within a batch are not guaranteed to execute in any specific order.
+            /// All devices in the system must have a non-zero value for the device attribute
+            /// ::CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS otherwise the API will return an error.
+            /// 
+            /// Discarding a memory range informs the driver that the contents of that range are no longer useful.
+            /// Discarding memory ranges allows the driver to optimize certain data migrations and can also help
+            /// reduce memory pressure.This operation can be undone on any part of the range by either writing to it
+            /// or prefetching it via ::cuMemPrefetchAsync or ::cuMemPrefetchBatchAsync.Reading from a discarded range,
+            /// without a subsequent write or prefetch to that part of the range, will return an indeterminate value.
+            /// Note that any reads, writes or prefetches to any part of the memory range that occur simultaneously with
+            /// the discard operation result in undefined behavior.
+            /// 
+            /// Performs memory discard on address ranges specified in \p dptrs and \p sizes.
+            /// Both arrays must be of the same length as specified by \p count. Each memory range
+            /// specified must refer to managed memory allocated via::cuMemAllocManaged or declared
+            /// via __managed__ variables or it may also refer to system-allocated memory when all devices
+            /// have a non-zero value for ::CU_DEVICE_ATTRIBUTE_PAGEABLE_MEMORY_ACCESS.
+            /// </summary>
+            /// <param name="dptrs">Array of pointers to be discarded</param>
+            /// <param name="sizes">Array of sizes for memory discard operations.</param>
+            /// <param name="count">Size of \p dptrs and \p sizes arrays.</param>
+            /// <param name="flags">Flags reserved for future use. Must be zero.</param>
+            /// <param name="hStream">The stream to enqueue the operations in. Must not be legacy NULL stream.</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemDiscardBatchAsync" + CUDA_PTSZ)]
+            public static extern CUResult cuMemDiscardBatchAsync(CUdeviceptr[] dptrs, SizeT[] sizes, SizeT count, ulong flags, CUstream hStream);
+
+            /// <summary>
+            /// \brief Performs a batch of memory discards and prefetches asynchronously
+            /// 
+            /// Performs a batch of memory discards followed by prefetches.The batch as a whole executes
+            /// in stream order but operations within a batch are not guaranteed to execute in any specific order.
+            /// All devices in the system must have a non-zero value for the device attribute
+            /// ::CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS otherwise the API will return an error.
+            /// 
+            /// Calling::cuMemDiscardAndPrefetchBatchAsync is semantically equivalent to calling
+            /// ::cuMemDiscardBatchAsync followed by::cuMemPrefetchBatchAsync, but is more optimal.
+            /// For more details on what discarding and prefetching imply, please refer to::cuMemDiscardBatchAsync and
+            /// ::cuMemPrefetchBatchAsync respectively. Note that any reads, writes or prefetches to any part
+            /// of the memory range that occur simultaneously with this combined discard+prefetch operation
+            /// result in undefined behavior.
+            /// 
+            /// Performs memory discard and prefetch on address ranges specified in \p dptrs and \p sizes.
+            /// Both arrays must be of the same length as specified by \p count. Each memory range specified
+            /// must refer to managed memory allocated via::cuMemAllocManaged or declared via
+            /// __managed__ variables or it may also refer to system-allocated memory when all devices
+            /// have a non-zero value for ::CU_DEVICE_ATTRIBUTE_PAGEABLE_MEMORY_ACCESS.Every operation in the batch
+            /// has to be associated with a valid location to prefetch the address range to and specified in
+            /// the \p prefetchLocs array.Each entry in this array can apply to more than one operation.
+            /// This can be done by specifying in the \p prefetchLocIdxs array, the index of the first
+            /// operation that the corresponding entry in the \p prefetchLocs array applies to.
+            /// Both \p prefetchLocs and \p prefetchLocIdxs must be of the same length as specified by
+            /// \p numPrefetchLocs. For example, if a batch has 10 operations listed in dptrs/sizes,
+            /// the first 6 of which are to be prefetched to one location and the remaining 4 are to be
+            /// prefetched to another, then \p numPrefetchLocs will be 2, \p prefetchLocIdxs will be { 0, 6}
+            /// and \p prefetchLocs will contain the two set of locations.Note the first entry in
+            /// \p prefetchLocIdxs must always be 0. Also, each entry must be greater than the previous
+            /// entry and the last entry should be less than \p count.Furthermore, \p numPrefetchLocs
+            /// must be lesser than or equal to \p count.
+            /// </summary>
+            /// <param name="dptrs">Array of pointers to be discarded</param>
+            /// <param name="sizes">Array of sizes for memory discard operations.</param>
+            /// <param name="count">Size of \p dptrs and \p sizes arrays.</param>
+            /// <param name="prefetchLocs">Array of locations to prefetch to.</param>
+            /// <param name="prefetchLocIdxs">Array of indices to specify which operands each entry in the \p prefetchLocs array applies to.
+            /// The locations specified in prefetchLocs[k] will be applied to operations starting from  prefetchLocIdxs[k]
+            /// through prefetchLocIdxs[k + 1] - 1. Also prefetchLocs[numPrefetchLocs - 1] will apply to copies starting from
+            ///                          prefetchLocIdxs[numPrefetchLocs - 1] through count - 1.</param>
+            /// <param name="numPrefetchLocs">Size of \p prefetchLocs and \p prefetchLocIdxs arrays.</param>
+            /// <param name="flags">Flags reserved for future use. Must be zero.</param>
+            /// <param name="hStream">The stream to enqueue the operations in. Must not be legacy NULL stream.</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemDiscardAndPrefetchBatchAsync" + CUDA_PTSZ)]
+            public static extern CUResult cuMemDiscardAndPrefetchBatchAsync(CUdeviceptr[] dptrs, SizeT[] sizes, SizeT count,
+                                                               CUmemLocation[] prefetchLocs, SizeT[] prefetchLocIdxs, SizeT numPrefetchLocs,
+                                                               ulong flags, CUstream hStream);
 
 
             /// <summary>
@@ -2908,6 +2947,64 @@ namespace ManagedCuda
             /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuMemPoolDestroy(CUmemoryPool pool);
+
+            /// <summary>
+            /// Returns the default memory pool for a given location and allocation type
+            /// The memory location can be of one of ::CU_MEM_LOCATION_TYPE_DEVICE, ::CU_MEM_LOCATION_TYPE_HOST or
+            /// ::CU_MEM_LOCATION_TYPE_HOST_NUMA.The allocation type can be one of::CU_MEM_ALLOCATION_TYPE_PINNED or 
+            /// ::CU_MEM_ALLOCATION_TYPE_MANAGED.When the allocation type is ::CU_MEM_ALLOCATION_TYPE_MANAGED,
+            /// the location type can also be::CU_MEM_LOCATION_TYPE_NONE to indicate no preferred location 
+            /// for the managed memory pool. In all other cases, the call returns::CUDA_ERROR_INVALID_VALUE.
+            /// </summary>
+            /// <param name="pool_out"></param>
+            /// <param name="location"></param>
+            /// <param name="type"></param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuMemGetDefaultMemPool([In, Out] ref CUmemoryPool pool_out, [In, Out] ref CUmemLocation location, CUmemAllocationType type);
+
+            /// <summary>
+            /// Gets the current memory pool for a memory location and of a particular allocation type
+            /// The memory location can be of one of ::CU_MEM_LOCATION_TYPE_DEVICE, ::CU_MEM_LOCATION_TYPE_HOST or
+            /// ::CU_MEM_LOCATION_TYPE_HOST_NUMA. The allocation type can be one of ::CU_MEM_ALLOCATION_TYPE_PINNED or 
+            /// ::CU_MEM_ALLOCATION_TYPE_MANAGED. When the allocation type is ::CU_MEM_ALLOCATION_TYPE_MANAGED, 
+            /// the location type can also be ::CU_MEM_LOCATION_TYPE_NONE to indicate no preferred location 
+            /// for the managed memory pool. In all other cases, the call returns ::CUDA_ERROR_INVALID_VALUE
+            /// Returns the last pool provided to ::cuMemSetMemPool or ::cuDeviceSetMemPool for this location and allocation type
+            /// or the location's default memory pool if ::cuMemSetMemPool or ::cuDeviceSetMemPool for that allocType and location
+            /// has never been called. By default the current mempool of a location is the default mempool for a device.
+            /// Otherwise the returned pool must have been set with ::cuDeviceSetMemPool.
+            /// </summary>
+            /// <param name="pool"></param>
+            /// <param name="location"></param>
+            /// <param name="type"></param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuMemGetMemPool([In, Out] ref CUmemoryPool pool, [In, Out] ref CUmemLocation location, CUmemAllocationType type);
+
+            /// <summary>
+            /// Sets the current memory pool for a memory location and allocation type
+            /// The memory location can be of one of ::CU_MEM_LOCATION_TYPE_DEVICE, ::CU_MEM_LOCATION_TYPE_HOST or
+            /// ::CU_MEM_LOCATION_TYPE_HOST_NUMA.The allocation type can be one of::CU_MEM_ALLOCATION_TYPE_PINNED or 
+            /// ::CU_MEM_ALLOCATION_TYPE_MANAGED.When the allocation type is ::CU_MEM_ALLOCATION_TYPE_MANAGED,
+            /// the location type can also be::CU_MEM_LOCATION_TYPE_NONE to indicate no preferred location 
+            /// for the managed memory pool. In all other cases, the call returns::CUDA_ERROR_INVALID_VALUE.
+            /// When a memory pool is set as the current memory pool, the location parameter should be the same as the location of the pool.
+            /// The location and allocation type specified must match those of the pool otherwise ::CUDA_ERROR_INVALID_VALUE is returned.
+            /// By default, a memory location's current memory pool is its default memory pool that can be obtained via ::cuMemGetDefaultMemPool.
+            /// If the location type is ::CU_MEM_LOCATION_TYPE_DEVICE and the allocation type is ::CU_MEM_ALLOCATION_TYPE_PINNED, then
+            /// this API is the equivalent of calling ::cuDeviceSetMemPool with the location id as the device. 
+            /// For further details on the implications, please refer to the documentation for ::cuDeviceSetMemPool.
+            /// \note Use ::cuMemAllocFromPoolAsync to specify asynchronous allocations from a device different
+            /// than the one the stream runs on.
+            /// </summary>
+            /// <param name="location"></param>
+            /// <param name="type"></param>
+            /// <param name="pool"></param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuMemSetMemPool(ref CUmemLocation location, CUmemAllocationType type, CUmemoryPool pool);
+
 
             /// <summary>
             /// Allocates memory from a specified pool with stream ordered semantics.<para/>
@@ -7443,13 +7540,12 @@ namespace ManagedCuda
             /// through attrsIdxs[k + 1] - 1. Also attrs[numAttrs - 1] will apply to copies starting from
             /// attrsIdxs[numAttrs - 1] through count - 1.</param>
             /// <param name="numAttrs">Size of \p attrs and \p attrsIdxs arrays.</param>
-            /// <param name="failIdx">Pointer to a location to return the index of the copy where a failure was encountered. The value will be SIZE_MAX if the error doesn't pertain to any specific copy.</param>
             /// <param name="hStream">The stream to enqueue the operations in. Must not be legacy NULL stream.</param>
             /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemcpyBatchAsync" + CUDA_PTSZ)]
             public static extern CUResult cuMemcpyBatchAsync(CUdeviceptr[] dsts, CUdeviceptr[] srcs, SizeT[] sizes, SizeT count,
                                                 CUmemcpyAttributes[] attrs, SizeT[] attrsIdxs, SizeT numAttrs,
-                                                ref SizeT failIdx, CUstream hStream);
+                                                CUstream hStream);
 
             /// <summary>
             /// Performs a batch of 3D memory copies asynchronously.<para/>
@@ -7504,13 +7600,12 @@ namespace ManagedCuda
             /// </summary>
             /// <param name="numOps">Total number of memcpy operations.</param>
             /// <param name="opList">Array of size \p numOps containing the actual memcpy operations.</param>
-            /// <param name="failIdx">Pointer to a location to return the index of the copy where a failure was encountered. The value will be SIZE_MAX if the error doesn't pertain to any specific copy.</param>
             /// <param name="flags">Flags for future use, must be zero now.</param>
             /// <param name="hStream">The stream to enqueue the operations in. Must not be default NULL stream.</param>
             /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuMemcpy3DBatchAsync" + CUDA_PTSZ)]
             public static extern CUResult cuMemcpy3DBatchAsync(SizeT numOps, CUDA_MEMCPY3D_BATCH_OP[] opList,
-                                                  ref SizeT failIdx, ulong flags, CUstream hStream);
+                                                  ulong flags, CUstream hStream);
 
             // 1D functions
             // system <-> device memory
@@ -9293,19 +9388,6 @@ namespace ManagedCuda
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuEventDestroy_v2(CUevent hEvent);
 
-            /// <summary>
-            /// Computes the elapsed time between two events (in milliseconds with a resolution of around 0.5 microseconds). If
-            /// either event has not been recorded yet, this function returns <see cref="CUResult.ErrorNotReady"/>. If either event has been
-            /// recorded with a non-zero stream, the result is undefined.
-            /// </summary>
-            /// <param name="pMilliseconds">Returned elapsed time in milliseconds</param>
-            /// <param name="hStart">Starting event</param>
-            /// <param name="hEnd">Ending event</param>
-            /// <returns>CUDA Error Codes: <see cref="CUResult.Success"/>, <see cref="CUResult.ErrorDeinitialized"/>, <see cref="CUResult.ErrorNotInitialized"/>, 
-            /// <see cref="CUResult.ErrorInvalidContext"/>, <see cref="CUResult.ErrorInvalidHandle"/>, <see cref="CUResult.ErrorNotReady"/>.
-            /// <remarks>Note that this function may also return error codes from previous, asynchronous launches.</remarks></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuEventElapsedTime(ref float pMilliseconds, CUevent hStart, CUevent hEnd);
 
             /// <summary>
             /// Computes the elapsed time between two events<para/>
@@ -9333,8 +9415,8 @@ namespace ManagedCuda
             /// <param name="hStart">Starting event</param>
             /// <param name="hEnd">Ending event</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuEventElapsedTime_v2(ref float pMilliseconds, CUevent hStart, CUevent hEnd);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuEventElapsedTime_v2")]
+            public static extern CUResult cuEventElapsedTime(ref float pMilliseconds, CUevent hStart, CUevent hEnd);
 
 
             /// <summary>
@@ -9911,57 +9993,6 @@ namespace ManagedCuda
             public static extern CUResult cuThreadExchangeStreamCaptureMode(ref CUstreamCaptureMode mode);
 
 
-            ///// <summary>
-            ///// Query capture status of a stream<para/>
-            ///// Query the capture status of a stream and and get an id for
-            ///// the capture sequence, which is unique over the lifetime of the process.<para/>
-            ///// If called on::CU_STREAM_LEGACY(the "null stream") while a stream not created
-            ///// with::CU_STREAM_NON_BLOCKING is capturing, returns::CUDA_ERROR_STREAM_CAPTURE_IMPLICIT.<para/>
-            ///// A valid id is returned only if both of the following are true:<para/>
-            ///// - the call returns CUDA_SUCCESS<para/>
-            ///// - captureStatus is set to ::CU_STREAM_CAPTURE_STATUS_ACTIVE<para/>
-            ///// </summary>
-            ///// <param name="hStream"></param>
-            ///// <param name="captureStatus"></param>
-            ///// <param name="id"></param>
-            //[DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuStreamGetCaptureInfo" + CUDA_PTSZ)]
-            //public static extern CUResult cuStreamGetCaptureInfo(CUstream hStream, ref CUstreamCaptureStatus captureStatus, ref ulong id);
-
-
-            /// <summary>
-            /// Query a stream's capture state (11.3+)<para/>
-            /// Query stream state related to stream capture.
-            /// <para/>
-            /// If called on ::CU_STREAM_LEGACY(the "null stream") while a stream not created 
-            /// with::CU_STREAM_NON_BLOCKING is capturing, returns::CUDA_ERROR_STREAM_CAPTURE_IMPLICIT.
-            /// <para/>
-            /// Valid data(other than capture status) is returned only if both of the following are true:
-            /// - the call returns CUDA_SUCCESS
-            /// - the returned capture status is ::CU_STREAM_CAPTURE_STATUS_ACTIVE
-            /// <para/>
-            /// </summary>
-            /// <param name="hStream">The stream to query</param>
-            /// <param name="captureStatus_out">captureStatus_out - Location to return the capture status of the stream; required</param>
-            /// <param name="id_out">Optional location to return an id for the capture sequence, which is unique over the lifetime of the process</param>
-            /// <param name="graph_out">Optional location to return the graph being captured into. All operations other than destroy and node removal are permitted on the graph
-            /// while the capture sequence is in progress.This API does not transfer
-            /// ownership of the graph, which is transferred or destroyed at
-            /// ::cuStreamEndCapture.Note that the graph handle may be invalidated before
-            /// end of capture for certain errors.Nodes that are or become
-            /// unreachable from the original stream at ::cuStreamEndCapture due to direct
-            /// actions on the graph do not trigger ::CUDA_ERROR_STREAM_CAPTURE_UNJOINED.</param>
-            /// <param name="dependencies_out">Optional location to store a pointer to an array of nodes. The next node to be captured in the stream will depend on this set of nodes,
-            /// absent operations such as event wait which modify this set.The array pointer
-            /// is valid until the next API call which operates on the stream or until end of
-            /// capture. The node handles may be copied out and are valid until they or the
-            /// graph is destroyed.The driver-owned array may also be passed directly to
-            /// APIs that operate on the graph (not the stream) without copying.</param>
-            /// <param name="numDependencies_out">Optional location to store the size of the array returned in dependencies_out.</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuStreamGetCaptureInfo_v2" + CUDA_PTSZ)]
-            public static extern CUResult cuStreamGetCaptureInfo(CUstream hStream, ref CUstreamCaptureStatus captureStatus_out,
-                    ref ulong id_out, ref CUgraph graph_out, ref IntPtr dependencies_out, ref SizeT numDependencies_out);
-
-
             /// <summary>
             /// Query a stream's capture state (12.3+)<para/>
             /// Query stream state related to stream capture.<para/>
@@ -10006,60 +10037,27 @@ namespace ManagedCuda
 
 
             /// <summary>
-            /// Update the set of dependencies in a capturing stream (11.3+)<para/>
-            /// Modifies the dependency set of a capturing stream. The dependency set is the set of nodes that the next captured node in the stream will depend on.<para/>
+            /// \brief Update the set of dependencies in a capturing stream (12.3+)
+            /// 
+            /// Modifies the dependency set of a capturing stream. The dependency set is the set
+            /// of nodes that the next captured node in the stream will depend on along with the
+            /// edge data for those dependencies.
+            /// 
             /// Valid flags are ::CU_STREAM_ADD_CAPTURE_DEPENDENCIES and
-            /// ::CU_STREAM_SET_CAPTURE_DEPENDENCIES.These control whether the set passed to
-            /// the API is added to the existing set or replaces it.A flags value of 0 defaults
+            /// ::CU_STREAM_SET_CAPTURE_DEPENDENCIES. These control whether the set passed to
+            /// the API is added to the existing set or replaces it. A flags value of 0 defaults
             /// to ::CU_STREAM_ADD_CAPTURE_DEPENDENCIES.
+            /// 
             /// Nodes that are removed from the dependency set via this API do not result in
             /// ::CUDA_ERROR_STREAM_CAPTURE_UNJOINED if they are unreachable from the stream at
             /// ::cuStreamEndCapture.
-            /// Returns ::CUDA_ERROR_ILLEGAL_STATE if the stream is not capturing.
-            /// This API is new in CUDA 11.3. Developers requiring compatibility across minor
-            /// versions to CUDA 11.0 should not use this API or provide a fallback.
             /// </summary>
-            /// <param name="hStream"></param>
-            /// <param name="dependencies"></param>
-            /// <param name="numDependencies"></param>
-            /// <param name="flags"></param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuStreamUpdateCaptureDependencies" + CUDA_PTSZ)]
-            public static extern CUResult cuStreamUpdateCaptureDependencies(CUstream hStream, CUgraphNode[] dependencies, SizeT numDependencies, CUstreamUpdateCaptureDependencies_flags flags);
-
-
-            /**
-             * \brief Update the set of dependencies in a capturing stream (12.3+)
-             *
-             * Modifies the dependency set of a capturing stream. The dependency set is the set
-             * of nodes that the next captured node in the stream will depend on along with the
-             * edge data for those dependencies.
-             *
-             * Valid flags are ::CU_STREAM_ADD_CAPTURE_DEPENDENCIES and
-             * ::CU_STREAM_SET_CAPTURE_DEPENDENCIES. These control whether the set passed to
-             * the API is added to the existing set or replaces it. A flags value of 0 defaults
-             * to ::CU_STREAM_ADD_CAPTURE_DEPENDENCIES.
-             *
-             * Nodes that are removed from the dependency set via this API do not result in
-             * ::CUDA_ERROR_STREAM_CAPTURE_UNJOINED if they are unreachable from the stream at
-             * ::cuStreamEndCapture.
-             *
-             * Returns ::CUDA_ERROR_ILLEGAL_STATE if the stream is not capturing.
-             *
-             * \param hStream - The stream to update
-             * \param dependencies - The set of dependencies to add
-             * \param dependencyData - Optional array of data associated with each dependency.
-             * \param numDependencies - The size of the dependencies array
-             * \param flags - See above
-             *
-             * \return
-             * ::CUDA_SUCCESS,
-             * ::CUDA_ERROR_INVALID_VALUE,
-             * ::CUDA_ERROR_ILLEGAL_STATE
-             *
-             * \sa
-             * ::cuStreamBeginCapture,
-             * ::cuStreamGetCaptureInfo,
-             */
+            /// <param name="hStream">The stream to update</param>
+            /// <param name="dependencies">The set of dependencies to add</param>
+            /// <param name="dependencyData">Optional array of data associated with each dependency.</param>
+            /// <param name="numDependencies">The size of the dependencies array</param>
+            /// <param name="flags">See above</param>
+            /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuStreamUpdateCaptureDependencies_v2" + CUDA_PTSZ)]
             public static extern CUResult cuStreamUpdateCaptureDependencies(CUstream hStream, CUgraphNode[] dependencies,
                 CUgraphEdgeData[] dependencyData, SizeT numDependencies, CUstreamUpdateCaptureDependencies_flags flags);
@@ -10462,6 +10460,31 @@ namespace ManagedCuda
             /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuDeviceGetP2PAttribute(ref int value, CUdevice_P2PAttribute attrib, CUdevice srcDevice, CUdevice dstDevice);
+
+            /// <summary>
+            /// \brief Queries details about atomic operations supported between two devices
+            /// 
+            /// Returns in \p *capabilities the details about requested atomic \p *operations over the 
+            /// the link between \p srcDevice and \p dstDevice. The allocated size of \p *operations and 
+            /// \p *capabilities must be \p count.
+            /// 
+            /// For each ::CUatomicOperation in \p *operations, the corresponding result in \p *capabilities
+            /// will be a bitmask indicating which of ::CUatomicOperationCapability the link supports natively.
+            /// 
+            /// Returns ::CUDA_ERROR_INVALID_DEVICE if \p srcDevice or \p dstDevice are not valid
+            /// or if they represent the same device.
+            /// 
+            /// Returns ::CUDA_ERROR_INVALID_VALUE if \p *capabilities or \p *operations is NULL, if \p count is 0,
+            /// or if any of \p *operations is not valid.
+            /// </summary>
+            /// <param name="capabilities">Returned capability details of each requested operation</param>
+            /// <param name="operations">Requested operations</param>
+            /// <param name="count">Count of requested operations and size of capabilities</param>
+            /// <param name="srcDevice">The source device of the target link</param>
+            /// <param name="dstDevice">The destination device of the target link</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuDeviceGetP2PAtomicCapabilities([Out] CUatomicOperationCapability[] capabilities, [In] CUatomicOperation[] operations, uint count, CUdevice srcDevice, CUdevice dstDevice);
 
         }
         #endregion
@@ -12373,24 +12396,6 @@ namespace ManagedCuda
             public static extern CUResult cuGraphGetRootNodes(CUgraph hGraph, [In, Out] CUgraphNode[] rootNodes, ref SizeT numRootNodes);
 
             /// <summary>
-            /// Returns a graph's dependency edges<para/>
-            /// Returns a list of \p hGraph's dependency edges. Edges are returned via corresponding
-            /// indices in \p from and \p to; that is, the node in \p to[i] has a dependency on the
-            /// node in \p from[i]. \p from and \p to may both be NULL, in which
-            /// case this function only returns the number of edges in \p numEdges. Otherwise,
-            /// \p numEdges entries will be filled in. If \p numEdges is higher than the actual
-            /// number of edges, the remaining entries in \p from and \p to will be set to NULL, and
-            /// the number of edges actually returned will be written to \p numEdges.
-            /// </summary>
-            /// <param name="hGraph">Graph to get the edges from</param>
-            /// <param name="from">Location to return edge endpoints</param>
-            /// <param name="to">Location to return edge endpoints</param>
-            /// <param name="numEdges">See description</param>
-            /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphGetEdges(CUgraph hGraph, [In, Out] CUgraphNode[] from, [In, Out] CUgraphNode[] to, ref SizeT numEdges);
-
-            /// <summary>
             /// Returns a graph's dependency edges (12.3+)<para/>
             /// Returns a list of \p hGraph's dependency edges. Edges are returned via corresponding
             /// indices in \p from, \p to and \p edgeData; that is, the node in \p to[i] has a
@@ -12410,23 +12415,9 @@ namespace ManagedCuda
             /// <param name="edgeData">Optional location to return edge data</param>
             /// <param name="numEdges">See description</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphGetEdges_v2(CUgraph hGraph, [In, Out] CUgraphNode[] from, [In, Out] CUgraphNode[] to, [In, Out] CUgraphEdgeData[] edgeData, ref SizeT numEdges);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphGetEdges_v2")]
+            public static extern CUResult cuGraphGetEdges(CUgraph hGraph, [In, Out] CUgraphNode[] from, [In, Out] CUgraphNode[] to, [In, Out] CUgraphEdgeData[] edgeData, ref SizeT numEdges);
 
-
-            /// <summary>
-            /// Returns a node's dependencies<para/>
-            /// Returns a list of \p node's dependencies. \p dependencies may be NULL, in which case this
-            /// function will return the number of dependencies in \p numDependencies. Otherwise,
-            /// \p numDependencies entries will be filled in. If \p numDependencies is higher than the actual
-            /// number of dependencies, the remaining entries in \p dependencies will be set to NULL, and the
-            /// number of nodes actually obtained will be returned in \p numDependencies.
-            /// </summary>
-            /// <param name="hNode">Node to query</param>
-            /// <param name="dependencies">Pointer to return the dependencies</param>
-            /// <param name="numDependencies">See description</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphNodeGetDependencies(CUgraphNode hNode, [In, Out] CUgraphNode[] dependencies, ref SizeT numDependencies);
 
             /// <summary>
             /// Returns a node's dependencies (12.3+)
@@ -12443,23 +12434,8 @@ namespace ManagedCuda
             /// <param name="dependencies">Pointer to return the dependencies</param>
             /// <param name="edgeData">Optional array to return edge data for each dependency</param>
             /// <param name="numDependencies">See description</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphNodeGetDependencies_v2(CUgraphNode hNode, [In, Out] CUgraphNode[] dependencies, [In, Out] CUgraphEdgeData[] edgeData, ref SizeT numDependencies);
-
-            /// <summary>
-            /// Returns a node's dependent nodes<para/>
-            /// Returns a list of \p node's dependent nodes. \p dependentNodes may be NULL, in which
-            /// case this function will return the number of dependent nodes in \p numDependentNodes.
-            /// Otherwise, \p numDependentNodes entries will be filled in. If \p numDependentNodes is
-            /// higher than the actual number of dependent nodes, the remaining entries in
-            /// \p dependentNodes will be set to NULL, and the number of nodes actually obtained will
-            /// be returned in \p numDependentNodes.
-            /// </summary>
-            /// <param name="hNode">Node to query</param>
-            /// <param name="dependentNodes">Pointer to return the dependent nodes</param>
-            /// <param name="numDependentNodes">See description</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphNodeGetDependentNodes(CUgraphNode hNode, [In, Out] CUgraphNode[] dependentNodes, ref SizeT numDependentNodes);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphNodeGetDependencies_v2")]
+            public static extern CUResult cuGraphNodeGetDependencies(CUgraphNode hNode, [In, Out] CUgraphNode[] dependencies, [In, Out] CUgraphEdgeData[] edgeData, ref SizeT numDependencies);
 
 
             /// <summary>
@@ -12478,24 +12454,8 @@ namespace ManagedCuda
             /// <param name="dependentNodes">Pointer to return the dependent nodes</param>
             /// <param name="edgeData">Optional pointer to return edge data for dependent nodes</param>
             /// <param name="numDependentNodes">See description</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphNodeGetDependentNodes_v2(CUgraphNode hNode, [In, Out] CUgraphNode[] dependentNodes, [In, Out] CUgraphEdgeData[] edgeData, ref SizeT numDependentNodes);
-
-
-            /// <summary>
-            /// Adds dependency edges to a graph<para/>
-            /// The number of dependencies to be added is defined by \p numDependencies
-            /// Elements in \p from and \p to at corresponding indices define a dependency.
-            /// Each node in \p from and \p to must belong to \p hGraph.<para/>
-            /// If \p numDependencies is 0, elements in \p from and \p to will be ignored.
-            /// Specifying an existing dependency will return an error.
-            /// </summary>
-            /// <param name="hGraph">Graph to which dependencies are added</param>
-            /// <param name="from">Array of nodes that provide the dependencies</param>
-            /// <param name="to">Array of dependent nodes</param>
-            /// <param name="numDependencies">Number of dependencies to be added</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphAddDependencies(CUgraph hGraph, CUgraphNode[] from, CUgraphNode[] to, SizeT numDependencies);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphNodeGetDependentNodes_v2")]
+            public static extern CUResult cuGraphNodeGetDependentNodes(CUgraphNode hNode, [In, Out] CUgraphNode[] dependentNodes, [In, Out] CUgraphEdgeData[] edgeData, ref SizeT numDependentNodes);
 
             /// <summary>
             /// Adds dependency edges to a graph (12.3+)<para/>
@@ -12510,25 +12470,8 @@ namespace ManagedCuda
             /// <param name="to">Array of dependent nodes</param>
             /// <param name="edgeData">Optional array of edge data. If NULL, default (zeroed) edge data is assumed.</param>
             /// <param name="numDependencies">Number of dependencies to be added</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphAddDependencies_v2(CUgraph hGraph, CUgraphNode[] from, CUgraphNode[] to, CUgraphEdgeData[] edgeData, SizeT numDependencies);
-
-
-            /// <summary>
-            /// Removes dependency edges from a graph<para/>
-            /// The number of \p dependencies to be removed is defined by \p numDependencies.<para/>
-            /// Elements in \p from and \p to at corresponding indices define a dependency.<para/>
-            /// Each node in \p from and \p to must belong to \p hGraph.<para/>
-            /// If \p numDependencies is 0, elements in \p from and \p to will be ignored.<para/>
-            /// Specifying a non-existing dependency will return an error.<para/>
-            /// Dependencies cannot be removed from graphs which contain allocation or free nodes. Any attempt to do so will return an error.
-            /// </summary>
-            /// <param name="hGraph">Graph from which to remove dependencies</param>
-            /// <param name="from">Array of nodes that provide the dependencies</param>
-            /// <param name="to">Array of dependent nodes</param>
-            /// <param name="numDependencies">Number of dependencies to be removed</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphRemoveDependencies(CUgraph hGraph, CUgraphNode[] from, CUgraphNode[] to, SizeT numDependencies);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphAddDependencies_v2")]
+            public static extern CUResult cuGraphAddDependencies(CUgraph hGraph, CUgraphNode[] from, CUgraphNode[] to, CUgraphEdgeData[] edgeData, SizeT numDependencies);
 
             /// <summary>
             /// Removes dependency edges from a graph (12.3+)<para/>
@@ -12547,8 +12490,8 @@ namespace ManagedCuda
             /// <param name="to">Array of dependent nodes</param>
             /// <param name="edgeData">Optional array of edge data. If NULL, edge data is assumed to be default (zeroed).</param>
             /// <param name="numDependencies">Number of dependencies to be removed</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphRemoveDependencies_v2(CUgraph hGraph, CUgraphNode[] from, CUgraphNode[] to, CUgraphEdgeData[] edgeData, SizeT numDependencies);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphRemoveDependencies_v2")]
+            public static extern CUResult cuGraphRemoveDependencies(CUgraph hGraph, CUgraphNode[] from, CUgraphNode[] to, CUgraphEdgeData[] edgeData, SizeT numDependencies);
 
 
             /// <summary>
@@ -12559,27 +12502,6 @@ namespace ManagedCuda
             /// <param name="hNode">Node to remove</param>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuGraphDestroyNode(CUgraphNode hNode);
-
-
-            ///// <summary>
-            ///// Creates an executable graph from a graph<para/>
-            ///// Instantiates \p hGraph as an executable graph. The graph is validated for any
-            ///// structural constraints or intra-node constraints which were not previously
-            ///// validated.If instantiation is successful, a handle to the instantiated graph
-            ///// is returned in \p graphExec.<para/>
-            ///// If there are any errors, diagnostic information may be returned in \p errorNode and
-            ///// \p logBuffer.This is the primary way to inspect instantiation errors.The output
-            ///// will be null terminated unless the diagnostics overflow 
-            ///// the buffer. In this case, they will be truncated, and the last byte can be
-            ///// inspected to determine if truncation occurred.
-            ///// </summary>
-            ///// <param name="phGraphExec">Returns instantiated graph</param>
-            ///// <param name="hGraph">Graph to instantiate</param>
-            ///// <param name="phErrorNode">In case of an instantiation error, this may be modified to indicate a node contributing to the error</param>
-            ///// <param name="logBuffer">A character buffer to store diagnostic messages</param>
-            ///// <param name="bufferSize">Size of the log buffer in bytes</param>
-            //[DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphInstantiate_v2")]
-            //public static extern CUResult cuGraphInstantiate(ref CUgraphExec phGraphExec, CUgraph hGraph, ref CUgraphNode phErrorNode, [In, Out] byte[] logBuffer, SizeT bufferSize);
 
             /// <summary>
             /// Creates an executable graph from a graph<para/>
@@ -13298,34 +13220,6 @@ namespace ManagedCuda
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuGraphReleaseUserObject(CUgraph graph, CUuserObject obj, uint count);
 
-            /// <summary>
-            /// Adds a node of arbitrary type to a graph
-            /// 
-            /// Creates a new node in \p hGraph described by \p nodeParams with \p numDependencies
-            /// dependencies specified via \p dependencies. \p numDependencies may be 0.
-            /// \p dependencies may be null if \p numDependencies is 0. \p dependencies may not have
-            /// any duplicate entries.
-            /// 
-            /// \p nodeParams is a tagged union. The node type should be specified in the \p type field,
-            /// and type-specific parameters in the corresponding union member. All unused bytes - that
-            /// is, \p reserved0 and all bytes past the utilized union member - must be set to zero.
-            /// It is recommended to use brace initialization or memset to ensure all bytes are
-            /// initialized.
-            /// 
-            /// Note that for some node types, \p nodeParams may contain "out parameters" which are
-            /// modified during the call, such as \p nodeParams->alloc.dptr.
-            /// 
-            /// A handle to the new node will be returned in \p phGraphNode.
-            /// </summary>
-            /// <param name="phGraphNode">Returns newly created node</param>
-            /// <param name="hGraph">Graph to which to add the node</param>
-            /// <param name="dependencies">Dependencies of the node</param>
-            /// <param name="numDependencies">Number of dependencies</param>
-            /// <param name="nodeParams">Specification of the node</param>
-            /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphAddNode(ref CUgraphNode phGraphNode, CUgraph hGraph, CUgraphNode[] dependencies, SizeT numDependencies, ref CUgraphNodeParams nodeParams);
-
 
             /// <summary>
             /// Adds a node of arbitrary type to a graph (12.3+)<para/>
@@ -13348,8 +13242,8 @@ namespace ManagedCuda
             /// <param name="dependencyData">Optional edge data for the dependencies. If NULL, the data is assumed to be default (zeroed) for all dependencies.</param>
             /// <param name="numDependencies">Number of dependencies</param>
             /// <param name="nodeParams">Specification of the node</param>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
-            public static extern CUResult cuGraphAddNode_v2(ref CUgraphNode phGraphNode, CUgraph hGraph, CUgraphNode[] dependencies, CUgraphEdgeData[] dependencyData, SizeT numDependencies, ref CUgraphNodeParams nodeParams);
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuGraphAddNode_v2")]
+            public static extern CUResult cuGraphAddNode(ref CUgraphNode phGraphNode, CUgraph hGraph, CUgraphNode[] dependencies, CUgraphEdgeData[] dependencyData, SizeT numDependencies, ref CUgraphNodeParams nodeParams);
 
 
             /// <summary>
@@ -14417,6 +14311,22 @@ namespace ManagedCuda
             /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuGreenCtxStreamCreate(ref CUstream phStream, CUgreenCtx greenCtx, CUStreamFlags flags, int priority);
+
+
+            /// <summary>
+            /// \brief Returns the unique Id associated with the green context supplied
+            /// 
+            /// Returns in \p greenCtxId the unique Id which is associated with a given green context.
+            /// The Id is unique for the life of the program for this instance of CUDA.
+            /// If green context is supplied as NULL and the current context is set to a green context,
+            /// the Id of the current green context is returned.
+            /// </summary>
+            /// <param name="greenCtx">Green context for which to obtain the Id</param>
+            /// <param name="greenCtxId">Pointer to store the Id of the green context</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuGreenCtxGetId(CUgreenCtx greenCtx, ref ulong greenCtxId);
+
         }
         #endregion
 
@@ -14515,6 +14425,121 @@ namespace ManagedCuda
             /// <returns></returns>
             [DllImport(CUDA_DRIVER_API_DLL_NAME)]
             public static extern CUResult cuCheckpointProcessUnlock(int pid, ref CUcheckpointUnlockArgs args);
+        }
+        #endregion
+
+
+        #region Checkpointing
+        /// <summary>
+        /// CUDA checkpoint and restore functionality of the low-level
+        /// CUDA driver API
+        /// This sections describes the checkpoint and restore functions of the low-level
+        /// CUDA driver application programming interface.
+        /// The CUDA checkpoint and restore API's provide a way to save and restore GPU
+        /// state for full process checkpoints when used with CPU side process
+        /// checkpointing solutions.They can also be used to pause GPU work and suspend
+        /// a CUDA process to allow other applications to make use of GPU resources.
+        /// Checkpoint and restore capabilities are currently restricted to Linux.
+        /// </summary>
+        public static class Logging
+        {
+#if (NETCOREAPP)
+            static Logging()
+            {
+                DriverAPINativeMethods.Init();
+            }
+#endif
+            /**
+             * \brief 
+             * 
+             * \param callbackFunc  - 
+             * \param userData      - 
+             * \param callback_out  - 
+             *
+             * \return
+             * ::CUDA_SUCCESS
+             * ::CUDA_ERROR_INVALID_VALUE
+             */
+            /// <summary>
+            /// Register a callback function to receive error log messages
+            /// </summary>
+            /// <param name="callbackFunc">The function to register as a callback</param>
+            /// <param name="userData">A generic pointer to user data. This is passed into the callback function.</param>
+            /// <param name="callback_out">Optional location to store the callback handle after it is registered</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuLogsRegisterCallback(CUlogsCallback callbackFunc, IntPtr userData, ref CUlogsCallbackHandle callback_out);
+
+            /// <summary>
+            /// Unregister a log message callback
+            /// </summary>
+            /// <param name="callback">The callback instance to unregister from receiving log messages</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuLogsUnregisterCallback(CUlogsCallbackHandle callback);
+
+            /// <summary>
+            /// Sets log iterator to point to the end of log buffer, where the next message would be written.
+            /// </summary>
+            /// <param name="iterator_out">Location to store an iterator to the current tail of the logs</param>
+            /// <param name="flags">Reserved for future use, must be 0</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuLogsCurrent(ref CUlogIterator iterator_out, uint flags);
+
+            /// <summary>
+            /// Dump accumulated driver logs into a file
+            /// Logs generated by the driver are stored in an internal buffer and can be copied out using this API.
+            /// This API dumps all driver logs starting from \p iterator into \p pathToFile provided.
+            /// 
+            /// \note \p iterator is auto-advancing.Dumping logs will update the value of
+            ///       \p iterator to receive the next generated log.
+            /// 
+            /// \note The driver reserves limited memory for storing logs.
+            ///       The oldest logs may be overwritten and become unrecoverable.An indication will appear in the
+            /// destination outupt if the logs have been truncated.Call dump after each failed API to mitigate this
+            /// risk.
+            /// </summary>
+            /// <param name="iterator">Optional auto-advancing iterator specifying the starting log to read. NULL value dumps all logs.</param>
+            /// <param name="pathToFile">Path to output file for dumping logs</param>
+            /// <param name="flags">Reserved for future use, must be 0</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuLogsDumpToFile(ref CUlogIterator iterator, string pathToFile, uint flags);
+
+            /// <summary>
+            /// Dump accumulated driver logs into a buffer
+            /// 
+            /// Logs generated by the driver are stored in an internal buffer and can be copied out using this API.
+            /// This API dumps driver logs from \p iterator into \p buffer up to the size specified in \p* size.
+            /// The driver will always null terminate the buffer but there will not be a null character between log
+            /// entries, only a newline \\n.The driver will then return the actual number of bytes written in
+            /// \p* size, excluding the null terminator.If there are no messages to dump, \p* size will be set to 0
+            /// and the function will return ::CUDA_SUCCESS.
+            /// If the provided \p buffer is not large enough to hold any messages, \p* size will be set to 0 and
+            /// the function will return ::CUDA_ERROR_INVALID_VALUE.
+            /// 
+            /// \note \p iterator is auto-advancing.Dumping logs will update the value of
+            ///       \p iterator to receive the next generated log.
+            /// 
+            /// \note The driver reserves limited memory for storing logs. The maximum size of the buffer is 25600 bytes.
+            /// The oldest logs may be overwritten and become unrecoverable. An indication will appear in the
+            /// destination outupt if the logs have been truncated.Call dump after each failed API to mitigate this
+            /// risk.
+            /// 
+            /// \note If the provided value in \p* size is not large enough to hold all buffered messages, a message will
+            /// be added at the head of the buffer indicating this. The driver then computes the number of messages
+            ///       it is able to store in \p buffer and writes it out. The final message in \p buffer will always be
+            /// the most recent log message as of when the API is called.
+            /// </summary>
+            /// <param name="iterator">Optional auto-advancing iterator specifying the starting log to read. NULL value dumps all logs.</param>
+            /// <param name="buffer">Pointer to dump logs</param>
+            /// <param name="size">See description</param>
+            /// <param name="flags">Reserved for future use, must be 0</param>
+            /// <returns></returns>
+            [DllImport(CUDA_DRIVER_API_DLL_NAME)]
+            public static extern CUResult cuLogsDumpToMemory(ref CUlogIterator iterator, IntPtr buffer, ref SizeT size, uint flags);
+
         }
         #endregion
     }

@@ -1,24 +1,24 @@
-It all started as a hobby project to easily access CUDA from C# - at that time CUDA was available in version 3. Now more than 10 years later, managedCuda is still alive and is updated regularly by me to the latest versions of CUDA. In order to support further developments, I switched from the LGPL license to a dual-license GPLv3 / commercial license starting with managedCuda for Cuda version 12 onwards. In case you plan to use managedCuda 12 for a commercial project, please contact me by mail: managedcuda@articimaging.eu. If you use the open-source license and want to contribute to future development, you can donate me a beer here: 
+It all started as a hobby project to easily access CUDA from C# - at that time CUDA was available in version 3. Now more than 10 years later, managedCuda is still alive and is updated regularly by me to the latest versions of CUDA. In order to support further developments, I switched from the LGPL license to a dual-license GPLv3 / commercial license starting with managedCuda for Cuda version 12 onwards. In case you plan to use managedCuda 12+ for a commercial project, please contact me by mail: managedcuda@articimaging.eu. If you use the open-source license and want to contribute to future development, you can donate me a beer here: 
 [![Support via PayPal](https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif)](https://www.paypal.me/kunzmi/)
 
 # Official nuget packages
 One can find multiple packages for managedCuda on nuget, but the official packages are:
-- [ManagedCuda-12](https://www.nuget.org/packages/ManagedCuda-12/) (core library without dependencies)
-- [CUBLAS](https://www.nuget.org/packages/ManagedCuda-CUBLAS) (wrapper for cuBlas library, depends on ManagedCuda-12)
-- [CUFFT](https://www.nuget.org/packages/ManagedCuda-CUFFT) (wrapper for cuFFT library, depends on ManagedCuda-12)
-- [CURAND](https://www.nuget.org/packages/ManagedCuda-CURAND) (wrapper for cuRand library, depends on ManagedCuda-12)
-- [CUSOLVE](https://www.nuget.org/packages/ManagedCuda-CUSOLVE) (wrapper for cuSolver library, depends on ManagedCuda-12)
-- [CUSPARSE](https://www.nuget.org/packages/ManagedCuda-CUSPARSE) (wrapper for cuSparse library, depends on ManagedCuda-12)
-- [NPP](https://www.nuget.org/packages/ManagedCuda-NPP) (wrapper for NPP library, depends on ManagedCuda-12)
-- [NVJITLINK](https://www.nuget.org/packages/ManagedCuda-NVJITLINK) (wrapper for nvJitLink library, depends on ManagedCuda-12)
-- [NVJPEG](https://www.nuget.org/packages/ManagedCuda-NVJPEG) (wrapper for nvjpeg library, depends on ManagedCuda-12)
-- [NVRTC](https://www.nuget.org/packages/ManagedCuda-NVRTC) (wrapper for nvrtc library, depends on ManagedCuda-12)
+- [ManagedCuda-13](https://www.nuget.org/packages/ManagedCuda-13/) (core library without dependencies)
+- [CUBLAS](https://www.nuget.org/packages/ManagedCuda-CUBLAS) (wrapper for cuBlas library, depends on ManagedCuda-13)
+- [CUFFT](https://www.nuget.org/packages/ManagedCuda-CUFFT) (wrapper for cuFFT library, depends on ManagedCuda-13)
+- [CURAND](https://www.nuget.org/packages/ManagedCuda-CURAND) (wrapper for cuRand library, depends on ManagedCuda-13)
+- [CUSOLVE](https://www.nuget.org/packages/ManagedCuda-CUSOLVE) (wrapper for cuSolver library, depends on ManagedCuda-13)
+- [CUSPARSE](https://www.nuget.org/packages/ManagedCuda-CUSPARSE) (wrapper for cuSparse library, depends on ManagedCuda-13)
+- [NPP](https://www.nuget.org/packages/ManagedCuda-NPP) (wrapper for NPP library, depends on ManagedCuda-13)
+- [NVJITLINK](https://www.nuget.org/packages/ManagedCuda-NVJITLINK) (wrapper for nvJitLink library, depends on ManagedCuda-13)
+- [NVJPEG](https://www.nuget.org/packages/ManagedCuda-NVJPEG) (wrapper for nvjpeg library, depends on ManagedCuda-13)
+- [NVRTC](https://www.nuget.org/packages/ManagedCuda-NVRTC) (wrapper for nvrtc library, depends on ManagedCuda-13)
 
 # managedCuda
 ManagedCUDA aims an easy integration of NVidia's CUDA in .net applications written in C#, Visual Basic or any other .net language.
 
 For this it includes:
-- A complete wrapper for the  CUDA Driver API, version 12.8 (a 1:1 representation of cuda.h in C#) 
+- A complete wrapper for the  CUDA Driver API, version 13.0 (a 1:1 representation of cuda.h in C#) 
 - Based on this, wrapper classes for CUDA context, kernel, device variable, etc. 
 - Wrapper for graphics interop with DirectX and OpenGL, respectively SlimDX and OpenTK 
 - CUDA vector types like int2, float3 etc. with ToString() methods and operators (+, –, *, /) 
@@ -94,9 +94,13 @@ ctx.SetCurrent();
 ```
 
 # NppStreamContext
-In order to use the NppStreamContext-API of NPP, initialize a ```NppStreamContext``` like this:
+NPP in Cuda 13 removed the NppStreamContext initialization API and requires manual setting of all fields, which is now done by ManagedCUDA. To initialize a ```NppStreamContext```:
+
 ```C#
-CudaStream cudaStream = new CudaStream();          //optional, 
-NPPNativeMethods.NPPCore.nppSetStream(cudaStream); //if not set, NPP will work on the default null-stream
-NppStreamContext nppCtx = NPPNativeMethods.NPPCore.nppGetStreamContext();
+// Create a NppStreamContext from default Null-Stream:
+NppStreamContext streamCtx = new NppStreamContext(CUstream.NullStream);
+
+// Create a NppStreamContext from a custom stream
+CudaStream stream2 = new CudaStream(CUStreamFlags.Default);
+NppStreamContext streamCtx2 = new NppStreamContext(stream2);
 ```

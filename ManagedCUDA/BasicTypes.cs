@@ -26,6 +26,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace ManagedCuda.BasicTypes
 {
@@ -983,6 +984,11 @@ namespace ManagedCuda.BasicTypes
     /// <param name="userData">Pointer to user defined data provided at registration.</param>
     /// <param name="callback">The callback handle associated with this specific callback.</param>
     public delegate void CUasyncCallback(ref CUasyncNotificationInfo info, IntPtr userData, CUasyncCallbackHandle callback);
+
+    /// <summary>
+    /// CUlogsCallback
+    /// </summary>
+    public delegate void CUlogsCallback(IntPtr data, CUlogLevel logLevel, IntPtr message, SizeT length);
 
 
     #endregion

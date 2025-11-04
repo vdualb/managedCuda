@@ -30,6 +30,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace ManagedCuda.BasicTypes
 {
@@ -4335,6 +4336,12 @@ namespace ManagedCuda.BasicTypes
         uint sharedMemCarveout;
 
         /// <summary>
+        /// 
+        /// </summary>
+        [FieldOffset(0)]
+        uint nvlinkUtilCentricScheduling;
+
+        /// <summary>
         /// Pad to 64 bytes
         /// </summary>
         [FieldOffset(60)]
@@ -4479,9 +4486,15 @@ namespace ManagedCuda.BasicTypes
     public struct CudaChildGraphNodeParams
     {
         /// <summary>
-        /// The child graph to clone into the node for node creation, or a handle to the graph owned by the node for node query
+        /// The child graph to clone into the node for node creation, or a handle to the graph owned by the node for node query.
+        /// The graph must not contain conditional nodes. Graphs containing memory allocation or memory free nodes must
+        /// set the ownership to be moved to the parent.
         /// </summary>
         public CUgraph graph;
+        /// <summary>
+        /// The ownership relationship of the child graph node.
+        /// </summary>
+        public CUgraphChildGraphNodeOwnership ownership;
     }
 
     /// <summary>
@@ -4985,6 +4998,8 @@ namespace ManagedCuda.BasicTypes
         /// The amount of streaming multiprocessors available in this resource. This is an output parameter only, do not write to this field.
         /// </summary>
         public uint smCount;
+        uint minSmPartitionSize;
+        uint smCoscheduledAlignment;
     }
 
     /// <summary>
@@ -5197,10 +5212,17 @@ namespace ManagedCuda.BasicTypes
     public struct CUcheckpointRestoreArgs
     {
         /// <summary>
+        /// Pointer to array of gpu pairs that indicate how to remap GPUs during restore
+        /// </summary>
+        public IntPtr gpuPairs;
+        /// <summary>
+        /// Number of gpu pairs to remap
+        /// </summary>
+        public uint gpuPairsCount;
+        /// <summary>
         /// Reserved for future use, must be zeroed
         /// </summary>
-        ulong reserved0;
-        ulong reserved1;
+        uint reserved1;
         ulong reserved2;
         ulong reserved3;
         ulong reserved4;
@@ -5407,6 +5429,23 @@ namespace ManagedCuda.BasicTypes
         ulong padding0;
         ulong padding1;
         uint padding2;
+    }
+
+
+    /// <summary>
+    /// CUDA checkpoint GPU UUID pairs for device remapping during restore
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CUcheckpointGpuPair
+    {
+        /// <summary>
+        /// UUID of the GPU that was checkpointed
+        /// </summary>
+        public CUuuid oldUuid;
+        /// <summary>
+        /// UUID of the GPU to restore onto
+        /// </summary>
+        public CUuuid newUuid;
     }
 
     #endregion

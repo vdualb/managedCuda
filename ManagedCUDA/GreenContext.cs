@@ -264,5 +264,16 @@ namespace ManagedCuda
             CudaStream cudaStream = new CudaStream(stream, true);
             return cudaStream;
         }
+
+        public ulong GetId()
+        {
+            ulong ret = 0;
+
+            CUResult res = DriverAPINativeMethods.GreenContextAPI.cuGreenCtxGetId(_ctx, ref ret);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cuGreenCtxGetId", res));
+            if (res != CUResult.Success) throw new CudaException(res);
+
+            return ret;
+        }
     }
 }

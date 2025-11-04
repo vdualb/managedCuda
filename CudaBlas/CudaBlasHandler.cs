@@ -263,6 +263,132 @@ namespace ManagedCuda.CudaBlas
                 if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public cublasEmulationStrategy EmulationStrategy
+        {
+            get
+            {
+                cublasEmulationStrategy sm = 0;
+                _status = CudaBlasNativeMethods.cublasGetEmulationStrategy(_blasHandle, ref sm);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasGetEmulationStrategy", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+                return sm;
+            }
+            set
+            {
+                _status = CudaBlasNativeMethods.cublasSetEmulationStrategy(_blasHandle, value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasSetEmulationStrategy", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public cudaEmulationSpecialValuesSupport EmulationSpecialValuesSupport
+        {
+            get
+            {
+                cudaEmulationSpecialValuesSupport sm = 0;
+                _status = CudaBlasNativeMethods.cublasGetEmulationSpecialValuesSupport(_blasHandle, ref sm);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasGetEmulationSpecialValuesSupport", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+                return sm;
+            }
+            set
+            {
+                _status = CudaBlasNativeMethods.cublasSetEmulationSpecialValuesSupport(_blasHandle, value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasSetEmulationSpecialValuesSupport", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public cudaEmulationMantissaControl FixedPointEmulationMantissaControl
+        {
+            get
+            {
+                cudaEmulationMantissaControl sm = 0;
+                _status = CudaBlasNativeMethods.cublasGetFixedPointEmulationMantissaControl(_blasHandle, ref sm);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasGetFixedPointEmulationMantissaControl", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+                return sm;
+            }
+            set
+            {
+                _status = CudaBlasNativeMethods.cublasSetFixedPointEmulationMantissaControl(_blasHandle, value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasSetFixedPointEmulationMantissaControl", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int FixedPointEmulationMaxMantissaBitCount
+        {
+            get
+            {
+                int sm = 0;
+                _status = CudaBlasNativeMethods.cublasGetFixedPointEmulationMaxMantissaBitCount(_blasHandle, ref sm);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasGetFixedPointEmulationMaxMantissaBitCount", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+                return sm;
+            }
+            set
+            {
+                _status = CudaBlasNativeMethods.cublasSetFixedPointEmulationMaxMantissaBitCount(_blasHandle, value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasSetFixedPointEmulationMaxMantissaBitCount", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int FixedPointEmulationMantissaBitOffset
+        {
+            get
+            {
+                int sm = 0;
+                _status = CudaBlasNativeMethods.cublasGetFixedPointEmulationMantissaBitOffset(_blasHandle, ref sm);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasGetFixedPointEmulationMantissaBitOffset", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+                return sm;
+            }
+            set
+            {
+                _status = CudaBlasNativeMethods.cublasSetFixedPointEmulationMantissaBitOffset(_blasHandle, value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasSetFixedPointEmulationMantissaBitOffset", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IntPtr FixedPointEmulationMantissaBitCountPointer
+        {
+            get
+            {
+                IntPtr sm = IntPtr.Zero;
+                _status = CudaBlasNativeMethods.cublasGetFixedPointEmulationMantissaBitCountPointer(_blasHandle, ref sm);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasGetFixedPointEmulationMantissaBitCountPointer", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+                return sm;
+            }
+            set
+            {
+                _status = CudaBlasNativeMethods.cublasSetFixedPointEmulationMantissaBitCountPointer(_blasHandle, value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "cublasSetFixedPointEmulationMantissaBitCountPointer", _status));
+                if (_status != CublasStatus.Success) throw new CudaBlasException(_status);
+            }
+        }
         #endregion
 
         #region Methods

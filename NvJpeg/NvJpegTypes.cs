@@ -23,9 +23,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NvJpeg
 {
@@ -190,6 +190,14 @@ namespace ManagedCuda.NvJpeg
         /// 16 bit unsigned output in interleaved format
         /// </summary>
         UnchangedU16 = 7,
+        /// <summary>
+        /// 2 channels: Y and UV (at half horizontal + vertical resolution - 420)
+        /// </summary>
+        NV12 = 8,
+        /// <summary>
+        /// One channel: YUYV YUYV ... (U and V are at half horizontal resolution - 422)
+        /// </summary>
+        YUY2 = 9,
     }
 
 
@@ -198,6 +206,10 @@ namespace ManagedCuda.NvJpeg
     /// </summary>
     public enum nvjpegInputFormat
     {
+        /// <summary>
+        /// Input is YUV (or YCbCr)
+        /// </summary>
+        YUV = 1,
         /// <summary>
         /// Input is RGB - will be converted to YCbCr before encoding
         /// </summary>
@@ -213,7 +225,11 @@ namespace ManagedCuda.NvJpeg
         /// <summary>
         /// Input is interleaved RGB - will be converted to YCbCr before encoding
         /// </summary>
-        BGRI = 6
+        BGRI = 6,
+        /// <summary>
+        /// Input is 2 channels: Y and UV (at half horizontal + vertical resolution - 420)
+        /// </summary>
+        NV12 = 8
     }
 
 
@@ -251,6 +267,13 @@ namespace ManagedCuda.NvJpeg
         /// LossLessJPEG
         /// </summary>
         LossLessJPEG = 6,
+    }
+
+    public enum nvjpegEncBackend
+    {
+        Default = 0,
+        GPU = 1,
+        Hardware = 2,
     }
 
 

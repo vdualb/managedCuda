@@ -24,9 +24,9 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NvJpeg
 {
@@ -185,6 +185,11 @@ namespace ManagedCuda.NvJpeg
             return new EncoderState(this, stream);
         }
 
+        public EncoderState CreateEncoderState(nvjpegEncBackend backend, CudaStream stream)
+        {
+            return new EncoderState(this, backend, stream);
+        }
+
         public EncoderParams CreateEncoderParams(CudaStream stream)
         {
             return new EncoderParams(this, stream);
@@ -268,7 +273,7 @@ namespace ManagedCuda.NvJpeg
         /// <summary>
         /// GetHardwareDecoderInfo
         /// </summary>
-        public uint NumEngines
+        public uint HardwareDecoderNumEngines
         {
             get
             {
@@ -284,7 +289,7 @@ namespace ManagedCuda.NvJpeg
         /// <summary>
         /// GetHardwareDecoderInfo
         /// </summary>
-        public uint NumCoresPerEngine
+        public uint HardwareDecoderNumCoresPerEngine
         {
             get
             {
@@ -292,6 +297,21 @@ namespace ManagedCuda.NvJpeg
                 uint temp = 0;
                 res = NvJpegNativeMethods.nvjpegGetHardwareDecoderInfo(_handle, ref temp, ref value);
                 Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegGetHardwareDecoderInfo", res));
+                if (res != nvjpegStatus.Success)
+                    throw new NvJpegException(res);
+                return value;
+            }
+        }
+        /// <summary>
+        /// GetHardwareDecoderInfo
+        /// </summary>
+        public uint GetHardwareEncoderNumEngines
+        {
+            get
+            {
+                uint value = 0;
+                res = NvJpegNativeMethods.nvjpegGetHardwareEncoderInfo(_handle, ref value);
+                Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegGetHardwareEncoderInfo", res));
                 if (res != nvjpegStatus.Success)
                     throw new NvJpegException(res);
                 return value;

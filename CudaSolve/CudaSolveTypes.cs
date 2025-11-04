@@ -109,20 +109,20 @@ namespace ManagedCuda.CudaSolve
         /// 
         /// </summary>
         InvalidLicense = 11,
-        CUSOLVER_STATUS_IRS_PARAMS_NOT_INITIALIZED = 12,
-        CUSOLVER_STATUS_IRS_PARAMS_INVALID = 13,
+        IRSParamsNotInitialized = 12,
+        IRSParamsInvalid = 13,
 
-        CUSOLVER_STATUS_IRS_PARAMS_INVALID_PREC = 14,
-        CUSOLVER_STATUS_IRS_PARAMS_INVALID_REFINE = 15,
-        CUSOLVER_STATUS_IRS_PARAMS_INVALID_MAXITER = 16,
-        CUSOLVER_STATUS_IRS_INTERNAL_ERROR = 20,
-        CUSOLVER_STATUS_IRS_NOT_SUPPORTED = 21,
-        CUSOLVER_STATUS_IRS_OUT_OF_RANGE = 22,
-        CUSOLVER_STATUS_IRS_NRHS_NOT_SUPPORTED_FOR_REFINE_GMRES = 23,
-        CUSOLVER_STATUS_IRS_INFOS_NOT_INITIALIZED = 25,
-        CUSOLVER_STATUS_IRS_INFOS_NOT_DESTROYED = 26,
-        CUSOLVER_STATUS_IRS_MATRIX_SINGULAR = 30,
-        CUSOLVER_STATUS_INVALID_WORKSPACE = 31
+        IRSParamsInvalidPrec = 14,
+        IRSParamsInvalidRefine = 15,
+        IRSParamsInvalidMaxIter = 16,
+        IRSInternalError = 20,
+        IRSNotSupported = 21,
+        IRSOutOfRange = 22,
+        IRSNRHSNotSupportedForRefineGMRES = 23,
+        IRSInfosNotInitialized = 25,
+        IRSInfosNotDestroyed = 26,
+        IRSMatrixSingular = 30,
+        InvalidWorkspace = 31
     }
 
 
@@ -226,6 +226,12 @@ namespace ManagedCuda.CudaSolve
     {
         CUBLAS_DIRECT_FORWARD = 0,
         CUBLAS_DIRECT_BACKWARD = 1
+    }
+
+    public enum cusolverMathMode
+    {
+        Default = 1,
+        FP32EmulatedBF16X9 = 2,
     }
 
     #endregion

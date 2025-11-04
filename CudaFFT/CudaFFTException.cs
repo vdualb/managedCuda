@@ -157,14 +157,8 @@ namespace ManagedCuda.CudaFFT
                 case cufftResult.UnalignedData:
                     message = "Input or output does not satisfy texture alignment requirements.";
                     break;
-                case cufftResult.IncompleteParameterList:
-                    message = "Missing parameter in call.";
-                    break;
                 case cufftResult.InvalidDevice:
                     message = "Plan creation and execution are on different device.";
-                    break;
-                case cufftResult.ParseError:
-                    message = "Internal plan database error.";
                     break;
                 case cufftResult.NoWorkspace:
                     message = "Workspace not initialized.";
@@ -172,11 +166,20 @@ namespace ManagedCuda.CudaFFT
                 case cufftResult.NotImplemented:
                     message = "Not implemented.";
                     break;
-                case cufftResult.LicenseError:
-                    message = "License error.";
-                    break;
                 case cufftResult.NotSupported:
                     message = "Not supported error.";
+                    break;
+                case cufftResult.MissingDependency:
+                    message = "Missing dependency error.";
+                    break;
+                case cufftResult.NvrtcFailure:
+                    message = "NVRTC failure error.";
+                    break;
+                case cufftResult.NvjitlinkFailure:
+                    message = "NVJITLINK failure error.";
+                    break;
+                case cufftResult.NvshmemFailure:
+                    message = "NVSHMEM failure error.";
                     break;
                 default:
                     break;

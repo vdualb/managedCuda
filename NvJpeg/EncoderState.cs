@@ -24,10 +24,10 @@
 //  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+using ManagedCuda.BasicTypes;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using ManagedCuda.BasicTypes;
 
 namespace ManagedCuda.NvJpeg
 {
@@ -51,6 +51,17 @@ namespace ManagedCuda.NvJpeg
             _state = new nvjpegEncoderState();
             res = NvJpegNativeMethods.nvjpegEncoderStateCreate(nvJpeg.Handle, ref _state, stream.Stream);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncoderStateCreate", res));
+            if (res != nvjpegStatus.Success)
+                throw new NvJpegException(res);
+        }
+        /// <summary>
+        /// </summary>
+        internal EncoderState(NvJpeg nvJpeg, nvjpegEncBackend backend, CudaStream stream)
+        {
+            _nvJpeg = nvJpeg;
+            _state = new nvjpegEncoderState();
+            res = NvJpegNativeMethods.nvjpegEncoderStateCreateWithBackend(nvJpeg.Handle, ref _state, backend, stream.Stream);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncoderStateCreateWithBackend", res));
             if (res != nvjpegStatus.Success)
                 throw new NvJpegException(res);
         }
@@ -112,6 +123,13 @@ namespace ManagedCuda.NvJpeg
         {
             res = NvJpegNativeMethods.nvjpegEncodeImage(_nvJpeg.Handle, _state, encoderParams.Params, ref source, input_format, image_width, image_height, stream.Stream);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncodeImage", res));
+            if (res != nvjpegStatus.Success)
+                throw new NvJpegException(res);
+        }
+        public void Encode(EncoderParams encoderParams, nvjpegImage source, nvjpegChromaSubsampling input_subsampling, nvjpegInputFormat input_format, int image_width, int image_height, CudaStream stream)
+        {
+            res = NvJpegNativeMethods.nvjpegEncode(_nvJpeg.Handle, _state, encoderParams.Params, ref source, input_subsampling, input_format, image_width, image_height, stream.Stream);
+            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncode", res));
             if (res != nvjpegStatus.Success)
                 throw new NvJpegException(res);
         }
@@ -219,15 +237,6 @@ namespace ManagedCuda.NvJpeg
         {
             res = NvJpegNativeMethods.nvjpegEncoderParamsCopyMetadata(_state, encoderParams.Params, jpeg.Stream, stream.Stream);
             Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncoderParamsCopyMetadata", res));
-            if (res != nvjpegStatus.Success)
-                throw new NvJpegException(res);
-        }
-
-        // copies huffman tables from parsed stream. should require same scans structure
-        public void CopyHuffmanTables(EncoderParams encoderParams, JpegStream jpeg, CudaStream stream)
-        {
-            res = NvJpegNativeMethods.nvjpegEncoderParamsCopyHuffmanTables(_state, encoderParams.Params, jpeg.Stream, stream.Stream);
-            Debug.WriteLine(String.Format("{0:G}, {1}: {2}", DateTime.Now, "nvjpegEncoderParamsCopyHuffmanTables", res));
             if (res != nvjpegStatus.Success)
                 throw new NvJpegException(res);
         }

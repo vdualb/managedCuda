@@ -178,6 +178,9 @@ namespace ManagedCuda.NVRTC
                 case nvrtcResult.Cancelled:
                     message = "Cancelled error.";
                     break;
+                case nvrtcResult.TimeTraceFileWriteFailed:
+                    message = "TimeTraceFileWriteFailed error.";
+                    break;
                 default:
                     break;
             }

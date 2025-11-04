@@ -337,7 +337,11 @@ namespace ManagedCuda.CudaBlas
         Algo14TensorOp = 114,
         /// <summary>
         /// </summary>
-        Algo15TensorOp = 115
+        Algo15TensorOp = 115,
+        /// <summary>
+        /// benchmark available algorithms and choose optimal one, cached in handle
+        /// </summary>
+        AutoTune = 999
     }
 
     /// <summary>
@@ -360,6 +364,14 @@ namespace ManagedCuda.CudaBlas
         /// allow accelerating single precision routines using TF32 tensor cores
         /// </summary>
         TF32TensorOpMath = 3,
+        /// <summary>
+        /// allow accelerating single precision routines using the BF16x9 algorithm
+        /// </summary>
+        FP32EmulatedBF16X9 = 4,
+        /// <summary>
+        /// allow accelerating double precision routines using fixed-point emulation
+        /// </summary>
+        FP64EmulatedFixedpoint = 8,
         /// <summary>
         /// flag to force any reductons to use the accumulator type and not output type in case of mixed precision routines with lower size output type
         /// </summary>
@@ -404,6 +416,10 @@ namespace ManagedCuda.CudaBlas
         /// </summary>
         Compute32FFastTF32 = 77,
         /// <summary>
+        /// float - emulated, converts inputs into 3xBF16 values
+        /// </summary>
+        Compute32FEmulated16BFX9 = 78,
+        /// <summary>
         /// double - default
         /// </summary>
         Compute64F = 70,
@@ -412,6 +428,10 @@ namespace ManagedCuda.CudaBlas
         /// </summary>
         Compute64FPedantic = 71,
         /// <summary>
+        /// double - emulated, converts inputs into fixed-point
+        /// </summary>
+        Compute64FEmulatedFixpoint = 79,
+        /// <summary>
         /// signed 32-bit int - default
         /// </summary>
         Compute32I = 72,
@@ -419,6 +439,28 @@ namespace ManagedCuda.CudaBlas
         /// signed 32-bit int - pedantic
         /// </summary>
         Compute32IPedantic = 73,
+    }
+
+    /// <summary>
+    /// Enum for specifying how to leverage emulated algorithms
+    /// </summary>
+    public enum cublasEmulationStrategy
+    {
+        /// <summary>
+        /// The default emulation strategy.  For emulated computations, this is equivalent to
+        /// CUBLAS_EMULATION_STRATEGY_PERFORMANT unless the CUBLAS_EMULATION_STRATEGY environment variable is set.
+        /// </summary>
+        Default = 0,
+
+        /// <summary>
+        /// An emulation strategy which tells cuBLAS to use emulation when it provides a performance benefit
+        /// </summary>
+        Performant = 1,
+
+        /// <summary>
+        /// An emulation strategy which tells cuBLAS to use emulation whenever possible
+        /// </summary>
+        Eager = 2,
     }
 
     /// <summary>
