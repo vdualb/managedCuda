@@ -1046,7 +1046,7 @@ namespace ManagedCuda
             /// </summary>
             /// <param name="dev">Device which primary context is released</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDevicePrimaryCtxRelease_v2")]
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDevicePrimaryCtxRelease")]
             public static extern CUResult cuDevicePrimaryCtxRelease(CUdevice dev);
 
             /// <summary>
@@ -1063,7 +1063,7 @@ namespace ManagedCuda
             /// <param name="dev">Device for which the primary context flags are set</param>
             /// <param name="flags">New flags for the device</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDevicePrimaryCtxSetFlags_v2")]
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDevicePrimaryCtxSetFlags")]
             public static extern CUResult cuDevicePrimaryCtxSetFlags(CUdevice dev, CUCtxFlags flags);
 
             /// <summary>
@@ -1093,7 +1093,7 @@ namespace ManagedCuda
             /// </summary>
             /// <param name="dev">Device for which primary context is destroyed</param>
             /// <returns></returns>
-            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDevicePrimaryCtxReset_v2")]
+            [DllImport(CUDA_DRIVER_API_DLL_NAME, EntryPoint = "cuDevicePrimaryCtxReset")]
             public static extern CUResult cuDevicePrimaryCtxReset(CUdevice dev);
             #endregion
         }

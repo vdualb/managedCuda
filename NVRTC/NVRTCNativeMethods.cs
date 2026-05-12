@@ -34,7 +34,7 @@ namespace ManagedCuda.NVRTC
     /// <summary/>
     public static class NVRTCNativeMethods
     {
-        internal const string NVRTC_API_DLL_NAME = "nvrtc64_130_0";
+        internal const string NVRTC_API_DLL_NAME = "nvrtc64_80";
 
 #if (NETCOREAPP)
         internal const string NVRTC_API_DLL_NAME_LINUX = "nvrtc";
